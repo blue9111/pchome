@@ -78,7 +78,7 @@
         <div class="w-full max-w-3xl">
           <div class="mb-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.32em] text-slate-300">
             <span class="h-2 w-2 rounded-full bg-[#00ff7f] shadow-[0_0_14px_rgba(0,255,127,.95)] animate-pulse"></span>
-            今日 3C 特價抓取
+            今日 3C 即時抓取
           </div>
           <h1 class="display max-w-3xl whitespace-normal text-[clamp(1.15rem,5vw,3.25rem)] font-black tracking-[-0.04em] text-white leading-tight sm:whitespace-nowrap sm:leading-none">PChome 3C 特價情報板</h1>
           <p class="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">把 PChome 24h 的 3C 特價做成一頁式儀表板，先看圖和價格，再看折扣、來源設定。</p>
@@ -88,15 +88,15 @@
           <div class="mt-3 flex items-center gap-3">
             <span class="h-3 w-3 rounded-full bg-[#00ff7f] shadow-[0_0_16px_rgba(0,255,127,.95)] animate-pulse"></span>
             <div>
-              <div class="text-lg font-bold text-white">已同步 · PChome 3C 特價入口</div>
+              <div class="text-lg font-bold text-white">已同步 · PChome 3C 分類</div>
               <div id="update-time" class="text-sm text-slate-400">最後同步：尚未抓取</div>
             </div>
           </div>
           <div class="mt-4 flex flex-wrap gap-2">
             <span class="badge-green rounded-full px-3 py-1 text-xs font-semibold">狀態正常</span>
-            <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">來源：PChome 24h 3C 特價頁</span>
-            <span id="sourceMode" class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">資料模式：PChome 3C 特價即時抓取中</span>
-            <span id="itemTotal" class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">3C 特價資料抓取中</span>
+            <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">來源：PChome 24h 3C 分類頁</span>
+            <span id="sourceMode" class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">資料模式：PChome 3C 分類即時抓取中</span>
+            <span id="itemTotal" class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">3C 分類資料抓取中</span>
           </div>
           <div id="today-date" class="mt-4 text-sm text-slate-300">載入日期中...</div>
         </div>
@@ -240,7 +240,7 @@
       return mode;
     };
     let currentDeviceMode = syncDeviceMode();
-    const state = { products: [], filter: 'all', filterTouched: false, query: '', sort: 'discount-desc', source: 'live', syncStatus: 'loading', sourceLabel: 'PChome 3C 特價即時抓取中', lastSyncAt: null, loadRunId: 0, page: 1, avoidRotationIndex: 0, avoidRotationItems: [], avoidRotationDate: '' };
+    const state = { products: [], filter: 'all', filterTouched: false, query: '', sort: 'discount-desc', source: 'live', syncStatus: 'loading', sourceLabel: 'PChome 3C 分類即時抓取中', lastSyncAt: null, loadRunId: 0, page: 1, avoidRotationIndex: 0, avoidRotationItems: [], avoidRotationDate: '' };
     const autoRefreshMs = 10 * 60 * 1000;
     let autoRefreshTimer = null;
     let avoidRotationTimer = null;
@@ -268,7 +268,7 @@
       if (category === 'mobile') return discount >= 20 ? '手機及行動裝置折扣不錯，可先看規格。' : '行動裝置有降價，適合列入觀察。';
       if (category === 'wearable') return discount >= 20 ? '穿戴裝置有甜價，先看續航及健康功能。' : '智慧手錶及手環有折扣，值得比一比。';
       if (category === 'accessory') return '配件類有降價，但通常不是今天主角。';
-      return 'PChome 3C 特價頁抓到的特價，實用性先行。';
+      return 'PChome 搜尋頁抓到的 3C 特價，實用性先行。';
     };
     const buildAudience = (title, category) => {
       if (/SSD|固態硬碟|NVMe|M\.2|行動固態硬碟/i.test(title)) return '備份、外接、工作檔案搬運';
@@ -286,16 +286,6 @@
       return '價格有降，但還是先看用途值不值得。';
     };
     const normalizeSpaces = text => (text || '').replace(/\s+/g, ' ').trim();
-    const salePromoPattern = /^(?:\d+(?:\.\d+)?折|精選|限量|一日市場超低價!?|即扣即錄|首銷降千!?抽好禮|搭指定滑鼠送鍵帽|登記送\d+P幣|限量送殼貼組|家庭必備!?|即送|送\d+P幣|領\d+折券\+\d+P|限時下殺\d+折|限時下殺)\s*/i;
-    const stripSalePromo = text => {
-      let value = normalizeSpaces(text);
-      let next = value;
-      do {
-        value = next;
-        next = normalizeSpaces(next.replace(salePromoPattern, ''));
-      } while (next !== value);
-      return next;
-    };
     const getTaipeiDateKey = (date = new Date()) => {
       const parts = new Intl.DateTimeFormat('en-CA', {
         timeZone: 'Asia/Taipei',
@@ -390,7 +380,7 @@
     const wearablePattern = /Apple Watch|Watch Ultra|Watch SE|Galaxy Watch|Garmin|Fitbit|Amazfit|華米|HUAWEI WATCH|小米手錶|智慧手錶|智能手錶|智慧.*手環|健康.*手環|運動.*手環|手錶|穿戴裝置|Wearable/i;
     const mobilePattern = /手機|iPhone|iPad|平板|AirPods|耳機|耳麥|耳塞|行動電源|充電|Pubook|電子書|閱讀器|電子紙|Xiaomi|小米|Samsung|三星|Galaxy|OPPO|vivo|Zenfone|Xperia|Redmi|Pixel|Nothing Phone|ROG Phone|藍牙/i;
     const computerPattern = /筆電|桌機|顯示器|螢幕|SSD|固態硬碟|行動固態硬碟|NVMe|M\.2|硬碟|記憶體|顯卡|GPU|RTX|主機|NAS|路由器|鍵盤|滑鼠|喇叭/i;
-    const otherPattern = /相機|鏡頭|攝影|攝影機|空拍機|無人機|DJI|GoPro|CarPlay|播放器|掃拖機器人|掃地機器人|洗地機|機器人|咖啡機|電鍋|微波爐|烤箱|電風扇|風扇|空氣清淨機|除濕機|吸塵器|RO濾淨|淨水器|飲水機|電視|投影|遊戲主機|Switch|PS5|Xbox|監視器|行車記錄器|喇叭|音響|麥克風|耳機|耳麥|耳塞|藍牙/i;
+    const otherPattern = /相機|鏡頭|攝影|CarPlay|播放器|掃拖機器人|洗地機|機器人|咖啡機|電風扇|RO濾淨|飲水機|電視|投影|遊戲主機|Switch|PS5|Xbox/i;
     const isAccessoryTitle = title => accessoryPattern.test(title || '');
     const isWearableTitle = title => wearablePattern.test(title || '');
     const isMobileTitle = title => mobilePattern.test(title || '');
@@ -435,17 +425,16 @@
       };
     };
 
-    const LIVE_DEAL_SOURCES = [
-      { key: 'onsale', kind: 'markdown', url: 'https://24h.pchome.com.tw/onsale/', label: '限時瘋搶', limit: 24 },
-      { key: 'activity-threec', kind: 'activity', url: 'https://24h.pchome.com.tw/activity/A391054?banner=new24_block_h4', label: '3C 特價', limit: 6 },
-      { key: 'activity-gaming', kind: 'activity', url: 'https://24h.pchome.com.tw/activity/A081090?banner=new24_block_h5', label: '電競特價', limit: 6 }
+    const LIVE_CATEGORY_SOURCES = [
+      { key: 'mobile', url: 'https://24h.pchome.com.tw/region/DGAS', label: '一般手機', category: 'mobile', limit: 8 },
+      { key: 'wearable', url: 'https://24h.pchome.com.tw/region/DYAI', label: '智慧穿戴', category: 'wearable', limit: 6 },
+      { key: 'computer-network', url: 'https://24h.pchome.com.tw/region/DRAF', label: '網路', category: 'computer', limit: 8 },
+      { key: 'computer-accessory', url: 'https://24h.pchome.com.tw/region/DCAG', label: '筆電周邊/配件', category: 'computer', limit: 8 },
+      { key: 'computer-gaming', url: 'https://24h.pchome.com.tw/region/DSAX', label: '電競專區', category: 'computer', limit: 8 }
     ];
 
-    const liveProductCache = new Map();
     const buildJinaUrl = url => `https://r.jina.ai/http://${String(url || '').replace(/^https?:\/\//, '')}`;
-    const buildCodetabsUrl = url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}&_=${Date.now()}`;
-    const fetchMarkdownThroughProxy = url => fetchTextWithTimeout(buildCodetabsUrl(buildJinaUrl(url)), 20000);
-    const fetchHtmlThroughProxy = url => fetchTextWithTimeout(buildCodetabsUrl(url), 20000);
+    const buildAllOriginsUrl = url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}&_=${Date.now()}`;
     const parseMoneyText = text => {
       const normalized = String(text || '').replace(/[^\d]/g, '');
       return normalized ? Number(normalized) : 0;
@@ -490,19 +479,14 @@
           .replace(/\]\((https?:\/\/24h\.pchome\.com\.tw\/prod\/[^)]+)\)\s*$/, '')
           .replace(/\s+/g, ' ')
           .trim();
-        const priceAnchor = body.search(/\$\s*[\d,]+/);
-        if (priceAnchor < 0) continue;
-        const rawTitleText = normalizeSpaces(body.slice(0, priceAnchor));
-        const imageTitle = normalizeSpaces(imageMatch[1] || '');
-        const fallbackTitle = stripSalePromo(rawTitleText);
-        const title = [imageTitle, fallbackTitle].find(candidate => candidate && isThreeCRelatedTitle(candidate));
-        if (!title) continue;
-        const priceMatches = [...body.slice(priceAnchor).matchAll(/\$\s*([\d,]+)/g)].map(match => parseMoneyText(match[1])).filter(Boolean);
-        if (!priceMatches.length) continue;
-        const price = priceMatches[0];
-        const originalPrice = priceMatches[1] || price;
+        const titleMatch = body.match(/###\s*(.*?)\s+\$(\d[\d,]*)(?:\s+\$(\d[\d,]*))?/);
+        if (!titleMatch) continue;
+        const title = normalizeSpaces(titleMatch[1]);
+        if (!isThreeCRelatedTitle(title)) continue;
+        const price = parseMoneyText(titleMatch[2]);
+        const originalPrice = parseMoneyText(titleMatch[3]) || price;
         if (!title || !price || !image) continue;
-        const leadText = normalizeSpaces(rawTitleText.replace(title, '').replace(/^[\s*•]+|[\s*•]+$/g, ''));
+        const leadText = normalizeSpaces(body.slice(0, body.indexOf('###')).replace(/^[\s*•]+|[\s*•]+$/g, ''));
         seen.add(id);
         items.push({
           id,
@@ -513,7 +497,7 @@
           image,
           url,
           category: source.category || detectCategory(title),
-          query: source.label || source.title || 'PChome 3C 特價',
+          query: source.label || source.title || 'PChome 3C 分類',
           promo: leadText
         });
         if (items.length >= (source.limit || 4)) break;
@@ -521,107 +505,13 @@
       return items;
     }
 
-    function parsePchomeActivityProductUrls(html, source) {
-      const doc = new DOMParser().parseFromString(html, 'text/html');
-      const links = [...doc.querySelectorAll('a[href*="/prod/"]')];
-      const urls = [];
-      const seen = new Set();
-      for (const link of links) {
-        const href = link.getAttribute('href') || link.href || '';
-        if (!href) continue;
-        const absoluteUrl = new URL(href, 'https://24h.pchome.com.tw').href;
-        const id = extractProductId(absoluteUrl);
-        if (!id || seen.has(id)) continue;
-        seen.add(id);
-        urls.push(absoluteUrl);
-        if (urls.length >= (source.limit || 8)) break;
-      }
-      return urls;
-    }
-
-    function parsePchomeProductMarkdown(markdown, source, productUrl) {
-      const lines = String(markdown || '').split(/\r?\n/).map(line => line.trim());
-      const titleLine = lines.find(line => /^Title:\s*/i.test(line));
-      const title = normalizeSpaces((titleLine || '').replace(/^Title:\s*/i, '').replace(/\s+-\s+PChome 24h購物$/i, ''));
-      const imageMatch = markdown.match(/https:\/\/img\.pchome\.com\.tw\/cs\/items\/[^)\s"'<>]+/i);
-      const image = toAbsoluteUrl(imageMatch ? imageMatch[0] : '');
-      let priceAnchor = lines.findIndex(line => /限時瘋搶|特賣商品限時限量|一日驚爆價|限時狂降|一日市場超低價/i.test(line));
-      if (priceAnchor < 0) priceAnchor = lines.findIndex(line => /^商品編號:/i.test(line));
-      if (priceAnchor < 0) priceAnchor = lines.findIndex(line => /\$\s*[\d,]+/.test(line));
-      if (priceAnchor < 0) return null;
-      const priceTokens = [];
-      for (let i = Math.max(0, priceAnchor); i < lines.length && priceTokens.length < 2; i += 1) {
-        const line = lines[i];
-        if (/^規格\b|^配送資訊\b|^商品評價\b|^好康加購\b/i.test(line)) break;
-        for (const match of line.matchAll(/\$\s*([\d,]+)/g)) {
-          const value = parseMoneyText(match[1]);
-          if (value > 0) priceTokens.push(value);
-          if (priceTokens.length >= 2) break;
-        }
-      }
-      const price = priceTokens[0] || 0;
-      const originalPrice = priceTokens[1] || price;
-      const promoStart = lines.findIndex(line => /^商品編號:/i.test(line));
-      const promoText = promoStart >= 0 && priceAnchor > promoStart
-        ? normalizeSpaces(lines.slice(promoStart + 1, priceAnchor).filter(line => line && !/^!?\[?Image/i.test(line)).join(' '))
-        : '';
-      const featureLines = [];
-      let inFeatureBlock = false;
-      for (let i = Math.max(0, priceAnchor); i < lines.length; i += 1) {
-        const line = lines[i];
-        if (/^規格\b/i.test(line)) break;
-        if (/^\*\s+/.test(line) && !/https?:\/\//i.test(line)) {
-          inFeatureBlock = true;
-          const text = normalizeSpaces(line.replace(/^\*\s+/, ''));
-          if (text && !/^PChome|^規格|^配送資訊|^商品評價|^請選擇規格/i.test(text)) featureLines.push(text);
-          continue;
-        }
-        if (inFeatureBlock && line && !/^\*\s+\[/.test(line) && !/^###/.test(line)) {
-          const text = normalizeSpaces(line);
-          if (text && !/^PChome|^規格|^配送資訊|^商品評價|^請選擇規格/i.test(text)) featureLines.push(text);
-        }
-      }
-      if (!title || !price || !image) return null;
-      return {
-        id: extractProductId(productUrl),
-        title,
-        spec: promoText || featureLines.slice(0, 3).join('；') || title,
-        price,
-        originalPrice: originalPrice > price ? originalPrice : price,
-        image,
-        url: productUrl,
-        query: source.label || source.query || 'PChome 3C 特價'
-      };
-    }
-
-    async function resolveLiveProduct(productUrl, source) {
-      const cacheKey = productUrl;
-      if (liveProductCache.has(cacheKey)) return liveProductCache.get(cacheKey);
-      const promise = (async () => {
-        const markdown = await fetchMarkdownThroughProxy(productUrl);
-        const item = parsePchomeProductMarkdown(markdown, source, productUrl);
-        return item && isThreeCRelatedTitle(item.title) ? item : null;
-      })();
-      liveProductCache.set(cacheKey, promise);
-      return promise;
-    }
-
     async function fetchLiveSource(source) {
-      if (source.kind === 'markdown') {
-        const markdown = await fetchMarkdownThroughProxy(source.url);
-        return parsePchomeCards(markdown, source);
-      }
-      if (source.kind === 'activity') {
-        const html = await fetchHtmlThroughProxy(source.url);
-        const productUrls = parsePchomeActivityProductUrls(html, source);
-        const settled = await Promise.allSettled(productUrls.map(productUrl => resolveLiveProduct(productUrl, source)));
-        return settled.flatMap(result => result.status === 'fulfilled' && result.value ? [result.value] : []);
-      }
-      return [];
+      const responseText = await fetchTextWithTimeout(buildAllOriginsUrl(buildJinaUrl(source.url)), 20000);
+      return parsePchomeCards(responseText, source);
     }
 
     async function loadLiveProducts(runId) {
-      const settled = await Promise.allSettled(LIVE_DEAL_SOURCES.map(source => fetchLiveSource(source)));
+      const settled = await Promise.allSettled(LIVE_CATEGORY_SOURCES.map(source => fetchLiveSource(source)));
       if (runId !== state.loadRunId) return;
 
       const merged = [];
@@ -640,7 +530,7 @@
         state.products = merged.map(normalizeItem);
         state.syncStatus = 'live';
         state.source = 'live';
-        state.sourceLabel = 'PChome 24h 3C 特價入口即時抓取';
+        state.sourceLabel = 'PChome 24h 3C 分類即時抓取';
         state.lastSyncAt = new Date();
         updateHeader();
         renderView();
@@ -682,24 +572,24 @@
     function updateMeta(visibleCount, totalCount, totalPages) {
       const loading = state.syncStatus === 'loading' && totalCount === 0;
       const visibleCountText = loading
-        ? '正在從 PChome 3C 特價入口抓取最新商品資料…'
+        ? '正在從 PChome 抓取最新商品資料…'
         : `目前顯示 ${visibleCount} / ${totalCount} 筆 · 第 ${state.page} / ${totalPages} 頁`;
       document.getElementById('visible-count').textContent = visibleCountText;
       const sourceMode = document.getElementById('sourceMode');
       if (sourceMode) {
         sourceMode.textContent = loading
-          ? '資料模式：PChome 3C 特價即時抓取中'
+          ? '資料模式：PChome 3C 分類即時抓取中'
           : state.syncStatus === 'fallback'
             ? `資料模式：${state.sourceLabel || '本機 3C 備援'}`
-            : `資料模式：${state.sourceLabel || 'PChome 24h 3C 特價入口即時抓取'}`;
+            : `資料模式：${state.sourceLabel || 'PChome 24h 3C 分類即時抓取'}`;
       }
       const itemTotal = document.getElementById('itemTotal');
       if (itemTotal) {
         itemTotal.textContent = loading
-          ? '3C 特價資料抓取中'
+          ? '3C 分類資料抓取中'
           : state.syncStatus === 'fallback'
             ? `備援資料 ${totalCount} 筆 / 每頁 ${getPageSize()} 筆`
-            : `3C 特價資料 ${totalCount} 筆 / 每頁 ${getPageSize()} 筆`;
+            : `3C 分類資料 ${totalCount} 筆 / 每頁 ${getPageSize()} 筆`;
       }
       const pageSizeLabel = document.getElementById('pageSizeLabel');
       if (pageSizeLabel) pageSizeLabel.textContent = `每頁 ${getPageSize()} 筆`;
@@ -753,7 +643,7 @@
     }
 
     function renderLoadingState() {
-      const message = '正在從 PChome 3C 特價入口抓取最新商品資料，請稍候…';
+      const message = '正在從 PChome 3C 分類抓取最新商品資料，請稍候…';
       const tableBody = document.getElementById('tableBody');
       const mobileList = document.getElementById('mobileProductList');
       const box = document.getElementById('avoidBox');
@@ -1042,10 +932,9 @@
     function loadSnapshot() {
       state.loadRunId += 1;
       const runId = state.loadRunId;
-      liveProductCache.clear();
       state.syncStatus = 'loading';
       state.source = 'live';
-      state.sourceLabel = 'PChome 3C 特價即時抓取中';
+      state.sourceLabel = 'PChome 3C 分類即時抓取中';
       state.lastSyncAt = null;
       state.page = 1;
       state.products = [];
