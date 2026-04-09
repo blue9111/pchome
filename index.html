@@ -406,7 +406,9 @@
     // 手機 / 穿戴
     const CORE_LIVE_SOURCES = [
       { key: 'mobile', url: 'https://24h.pchome.com.tw/region/DGAS', label: '一般手機', category: 'mobile', limit: 8 },
-      { key: 'wearable', url: 'https://24h.pchome.com.tw/region/DYAI', label: '智慧穿戴', category: 'wearable', limit: 6 }
+      { key: 'wearable', url: 'https://24h.pchome.com.tw/region/DYAI', label: '智慧穿戴', category: 'wearable', limit: 6 },
+      { key: 'power-bank', url: 'https://24h.pchome.com.tw/region/DYAO', label: '行動電源', category: 'mobile', limit: 8 },
+      { key: 'apple-watch', url: 'https://24h.pchome.com.tw/category/DYAJ75C', label: 'Apple Watch', category: 'wearable', limit: 6 }
     ];
 
     // 電競
@@ -425,32 +427,45 @@
       { key: 'laptop-acer', url: 'https://24h.pchome.com.tw/region/DHAE', label: 'ACER宏碁筆電', category: 'computer', limit: 4 },
       { key: 'laptop-asus', url: 'https://24h.pchome.com.tw/region/DHAF', label: 'ASUS華碩筆電', category: 'computer', limit: 4 },
       { key: 'laptop-hp', url: 'https://24h.pchome.com.tw/region/DHAG', label: 'HP惠普筆電', category: 'computer', limit: 4 },
-      { key: 'laptop-dell', url: 'https://24h.pchome.com.tw/region/DHAI', label: 'DELL戴爾筆電', category: 'computer', limit: 4 }
+      { key: 'laptop-dell', url: 'https://24h.pchome.com.tw/region/DHAI', label: 'DELL戴爾筆電', category: 'computer', limit: 4 },
+      { key: 'laptop-surface', url: 'https://24h.pchome.com.tw/region/DHAY', label: 'Surface 筆電', category: 'computer', limit: 4 },
+      { key: 'laptop-hub', url: 'https://24h.pchome.com.tw/region/DCAD', label: '筆電配件 / USB HUB', category: 'computer', limit: 4 }
     ];
 
     // 顯示 / 主機 / 監視
     const DISPLAY_SYSTEM_LIVE_SOURCES = [
-      { key: 'monitor', url: 'https://24h.pchome.com.tw/region/DSAB', label: '螢幕', category: 'computer', limit: 6 },
+      { key: 'monitor', url: 'https://24h.pchome.com.tw/region/DSAB', label: '顯示器', category: 'computer', limit: 6 },
       { key: 'desktop-pc', url: 'https://24h.pchome.com.tw/region/DSAU', label: '主機', category: 'computer', limit: 6 },
-      { key: 'surveillance', url: 'https://24h.pchome.com.tw/region/DCAS', label: '監視器', category: 'computer', limit: 6 }
+      { key: 'surveillance', url: 'https://24h.pchome.com.tw/region/DCAS', label: '監視器', category: 'computer', limit: 6 },
+      { key: 'television', url: 'https://24h.pchome.com.tw/region/DPAD', label: '電視', category: 'computer', limit: 6 }
     ];
 
     // 儲存 / 記憶體
     const STORAGE_LIVE_SOURCES = [
       { key: 'ssd', url: 'https://24h.pchome.com.tw/region/DRAH', label: 'SSD', category: 'computer', limit: 6 },
       { key: 'memory', url: 'https://24h.pchome.com.tw/region/DRAC', label: '記憶體', category: 'computer', limit: 6 },
-      { key: 'external-storage', url: 'https://24h.pchome.com.tw/region/DRAA', label: '外接硬碟/SSD', category: 'computer', limit: 6 },
+      { key: 'external-storage', url: 'https://24h.pchome.com.tw/region/DRAA', label: '行動固態硬碟', category: 'computer', limit: 6 },
+      { key: 'nas', url: 'https://24h.pchome.com.tw/region/DRAG', label: 'NAS', category: 'computer', limit: 6 },
       { key: 'internal-storage', url: 'https://24h.pchome.com.tw/region/DRAB', label: '內接硬碟', category: 'computer', limit: 6 }
     ];
 
     // 網路 / 路由器
     const NETWORK_LIVE_SOURCES = [
       { key: 'computer-network', url: 'https://24h.pchome.com.tw/region/DRAF', label: '網路', category: 'computer', limit: 8 },
+      { key: 'router-main', url: 'https://24h.pchome.com.tw/region/DRAN', label: '路由器', category: 'computer', limit: 6 },
       { key: 'router-tplink', url: 'https://24h.pchome.com.tw/store/DRAFJB', label: 'TP-Link 路由器', category: 'computer', limit: 4 },
       { key: 'router-asus', url: 'https://24h.pchome.com.tw/store/DRAFJ5', label: 'ASUS 路由器', category: 'computer', limit: 4 },
       { key: 'router-full', url: 'https://24h.pchome.com.tw/store/DRAFJ8', label: '路由器全系列', category: 'computer', limit: 4 },
       { key: 'router-mercusys', url: 'https://24h.pchome.com.tw/store/DRAFEM', label: 'Mercusys 路由器', category: 'computer', limit: 4 },
       { key: 'router-gaming', url: 'https://24h.pchome.com.tw/store/DRAFKW', label: '電競路由器', category: 'computer', limit: 4 }
+    ];
+
+    // 周邊 / 音訊 / 穿戴補強
+    const PERIPHERAL_LIVE_SOURCES = [
+      { key: 'keyboard', url: 'https://24h.pchome.com.tw/region/DCAH', label: '鍵盤', category: 'computer', limit: 6 },
+      { key: 'mouse', url: 'https://24h.pchome.com.tw/store/DCANSS', label: '無線滑鼠', category: 'computer', limit: 6 },
+      { key: 'mouse-razer', url: 'https://24h.pchome.com.tw/store/DCANXE', label: 'Razer 滑鼠', category: 'computer', limit: 6 },
+      { key: 'bluetooth-headset', url: 'https://24h.pchome.com.tw/category/DYAQ15C', label: '藍牙耳機', category: 'accessory', limit: 8 }
     ];
 
     const LIVE_CATEGORY_SOURCES = [
@@ -459,7 +474,8 @@
       ...LAPTOP_LIVE_SOURCES,
       ...DISPLAY_SYSTEM_LIVE_SOURCES,
       ...STORAGE_LIVE_SOURCES,
-      ...NETWORK_LIVE_SOURCES
+      ...NETWORK_LIVE_SOURCES,
+      ...PERIPHERAL_LIVE_SOURCES
     ];
 
     const buildJinaUrl = url => `https://r.jina.ai/http://${String(url || '').replace(/^https?:\/\//, '')}`;
