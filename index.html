@@ -74,8 +74,8 @@
 
   <main class="relative mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
     <header class="glass neon-border rounded-[2rem] p-5 sm:p-7">
-      <div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
-        <div class="max-w-3xl">
+      <div class="flex w-full flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+        <div class="w-full max-w-3xl">
           <div class="mb-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.32em] text-slate-300">
             <span class="h-2 w-2 rounded-full bg-[#00ff7f] shadow-[0_0_14px_rgba(0,255,127,.95)] animate-pulse"></span>
             今日資料快照
@@ -83,7 +83,7 @@
           <h1 class="display max-w-3xl whitespace-normal text-[clamp(1.15rem,5vw,3.25rem)] font-black tracking-[-0.04em] text-white leading-tight sm:whitespace-nowrap sm:leading-none">PChome 3C 特價情報板</h1>
           <p class="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">把 PChome 24h 的 3C 特價做成一頁式儀表板，先看圖和價格，再看折扣、來源設定。</p>
         </div>
-        <div class="glass rounded-[1.6rem] p-5 sm:min-w-[330px]">
+        <div class="glass w-full rounded-[1.6rem] p-5 sm:min-w-[330px]">
           <div class="text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">今日情報更新狀態</div>
           <div class="mt-3 flex items-center gap-3">
             <span class="h-3 w-3 rounded-full bg-[#00ff7f] shadow-[0_0_16px_rgba(0,255,127,.95)] animate-pulse"></span>
@@ -121,12 +121,12 @@
 
       <div class="space-y-6">
         <section>
-          <div class="mb-4 flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
-            <div>
+          <div class="mb-4 flex w-full flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
+            <div class="w-full">
               <h2 class="display text-2xl font-black text-white">搜尋 / 排序</h2>
               <p class="mt-2 text-sm text-slate-400">先調整條件，再看下方表格、避雷針。</p>
             </div>
-            <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+            <div class="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
               <label class="relative">
                 <span class="sr-only">搜尋商品</span>
                 <input id="searchInput" type="search" placeholder="搜尋商品名稱 / 規格" class="w-full min-w-0 rounded-full border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder:text-slate-500 outline-none ring-0 transition focus:border-[#00ff7f]/40 focus:bg-white/8 sm:min-w-[220px] sm:w-[260px]" />
