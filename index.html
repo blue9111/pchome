@@ -219,6 +219,7 @@
     const extraProducts = [
       { title:'Apple 蘋果 Apple Watch Ultra 3 GPS + LTE 49mm 黑色鈦金屬錶殼搭配黑色海洋錶帶', spec:'Apple Watch Ultra 3 GPS + LTE 49mm 黑色鈦 錶殼搭配黑色海洋錶帶', price:25555, originalPrice:26900, image:'https://cs-a.ecimg.tw/items/DYAJCLA900J836T/000001_1757924323.jpg', url:'https://24h.pchome.com.tw/prod/DYAJCL-A900J836T' }
     ];
+    const MANUAL_LINKS_URL = 'manual-links.json';
     const inlineFallbackProducts = [
       { title:'ACER 16吋i5-RTX4050電競筆電', spec:'i5 / RTX 4050 / 16G / 512G SSD / 16 吋', price:35900, originalPrice:39900, image:'https://img.pchome.com.tw/cs/items/DHAEJ3A900JJPYK/000007_1765516721.jpg', url:'https://24h.pchome.com.tw/prod/DHAEJ3-A900JJPYK', category:'computer', rating:'strong', label:'強烈推薦', note:'遊戲筆電主力機，效能及價格平衡感不錯。', audience:'遊戲、剪片、需要一台撐得住的主力筆電', volcano:'RTX 4050 + 16 吋，這種組合就是要拿來衝第一線。' },
       { title:'三星65型 QLED顯示器', spec:'65 吋 / QLED / 大尺寸居家娛樂', price:26900, originalPrice:42900, image:'https://img.pchome.com.tw/cs/items/DPADEWA900JKR7W/000007_1766241398.jpg', url:'https://24h.pchome.com.tw/prod/DPADEW-A900JKR7W', category:'computer', rating:'strong', label:'強烈推薦', note:'折扣幅度大，適合直接抓來看家用大螢幕。', audience:'客廳大螢幕、追劇、家庭娛樂', volcano:'大尺寸 + 37% 折幅，視覺上很有感。' },
@@ -227,8 +228,8 @@
       { title:'金士頓512GB 雙介面行動固態硬碟', spec:'512GB / 雙介面 / 行動 SSD', price:2899, originalPrice:4599, image:'https://img.pchome.com.tw/cs/items/DRAAAHA900JTU8N/000007_1773824928.jpg', url:'https://24h.pchome.com.tw/prod/DRAAAH-A900JTU8N', category:'computer', rating:'consider', label:'值得考慮', note:'儲存裝置折扣不錯，實用派可以直接看。', audience:'備份、外接資料、攝影及工作檔案搬運', volcano:'容量及價格都在合理區間，穩穩的加分項。' },
       { title:'Glolux 流星錘3插3USB延長線1.5米 2入組', spec:'3 插 3 USB / 1.5 米 / 2 入組', price:599, originalPrice:1198, image:'https://img.pchome.com.tw/cs/items/DQBE2M1900JDO0N/000007_1772790077.jpg', url:'https://24h.pchome.com.tw/prod/DQBE2M-1900JDO0N', category:'accessory', rating:'avoid', label:'不推薦', note:'折扣很甜，但這種配件拿來當 3C 狙擊主角，焦點有點跑偏。', audience:'真的缺延長線的人', volcano:'不是壞，是不夠像主角；拿來湊單可以，拿來衝榜有點尷尬。' }
     ];
-    function fallbackProducts() {
-      return ((window.__PCHOME_SNAPSHOT__ || inlineFallbackProducts)).concat(extraProducts);
+    function fallbackProducts(manualProducts = []) {
+      return ((window.__PCHOME_SNAPSHOT__ || inlineFallbackProducts)).concat(extraProducts, manualProducts);
     }
 
     const mobileMediaQuery = window.matchMedia('(max-width: 767px)');
@@ -434,6 +435,7 @@
     ];
 
     const buildJinaUrl = url => `https://r.jina.ai/http://${String(url || '').replace(/^https?:\/\//, '')}`;
+    const buildCodetabsUrl = url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}&_=${Date.now()}`;
     const buildAllOriginsUrl = url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}&_=${Date.now()}`;
     const parseMoneyText = text => {
       const normalized = String(text || '').replace(/[^\d]/g, '');
@@ -505,25 +507,118 @@
       return items;
     }
 
+    function parsePchomeProductMarkdown(markdown, source, productUrl) {
+      const lines = String(markdown || '').split(/\r?\n/).map(line => line.trim());
+      const titleLine = lines.find(line => /^Title:\s*/i.test(line));
+      const title = normalizeSpaces((titleLine || '').replace(/^Title:\s*/i, '').replace(/\s+-\s+PChome 24h購物$/i, ''));
+      const imageMatch = markdown.match(/https:\/\/img\.pchome\.com\.tw\/cs\/items\/[^)\s"'<>]+/i);
+      const image = toAbsoluteUrl(imageMatch ? imageMatch[0] : '');
+      let priceAnchor = lines.findIndex(line => /限時瘋搶|特賣商品限時限量|一日驚爆價|限時狂降|一日市場超低價/i.test(line));
+      if (priceAnchor < 0) priceAnchor = lines.findIndex(line => /^商品編號:/i.test(line));
+      if (priceAnchor < 0) priceAnchor = lines.findIndex(line => /\$\s*[\d,]+/.test(line));
+      if (priceAnchor < 0) return null;
+      const priceTokens = [];
+      for (let i = Math.max(0, priceAnchor); i < lines.length && priceTokens.length < 2; i += 1) {
+        const line = lines[i];
+        if (/^規格\b|^配送資訊\b|^商品評價\b|^好康加購\b/i.test(line)) break;
+        for (const match of line.matchAll(/\$\s*([\d,]+)/g)) {
+          const value = parseMoneyText(match[1]);
+          if (value > 0) priceTokens.push(value);
+          if (priceTokens.length >= 2) break;
+        }
+      }
+      const price = priceTokens[0] || 0;
+      const originalPrice = priceTokens[1] || price;
+      const promoStart = lines.findIndex(line => /^商品編號:/i.test(line));
+      const promoText = promoStart >= 0 && priceAnchor > promoStart
+        ? normalizeSpaces(lines.slice(promoStart + 1, priceAnchor).filter(line => line && !/^!?\[?Image/i.test(line)).join(' '))
+        : '';
+      const featureLines = [];
+      let inFeatureBlock = false;
+      for (let i = Math.max(0, priceAnchor); i < lines.length; i += 1) {
+        const line = lines[i];
+        if (/^規格\b/i.test(line)) break;
+        if (/^\*\s+/.test(line) && !/https?:\/\//i.test(line)) {
+          inFeatureBlock = true;
+          const text = normalizeSpaces(line.replace(/^\*\s+/, ''));
+          if (text && !/^PChome|^規格|^配送資訊|^商品評價|^請選擇規格/i.test(text)) featureLines.push(text);
+          continue;
+        }
+        if (inFeatureBlock && line && !/^\*\s+\[/.test(line) && !/^###/.test(line)) {
+          const text = normalizeSpaces(line);
+          if (text && !/^PChome|^規格|^配送資訊|^商品評價|^請選擇規格/i.test(text)) featureLines.push(text);
+        }
+      }
+      if (!title || !price || !image) return null;
+      return {
+        id: extractProductId(productUrl),
+        title,
+        spec: promoText || featureLines.slice(0, 3).join('；') || title,
+        price,
+        originalPrice: originalPrice > price ? originalPrice : price,
+        image,
+        url: productUrl,
+        query: source.label || source.query || '後台手動連結'
+      };
+    }
+
+    async function loadManualSupplementProducts() {
+      try {
+        const response = await fetch(MANUAL_LINKS_URL, { cache: 'no-store' });
+        if (!response.ok) return [];
+        const payload = await response.json();
+        const entries = Array.isArray(payload) ? payload : [];
+        const manualLinks = entries
+          .map(entry => {
+            if (typeof entry === 'string') return { url: entry.trim(), label: '' };
+            if (entry && typeof entry === 'object') {
+              return {
+                url: String(entry.url || entry.link || '').trim(),
+                label: normalizeSpaces(entry.label || entry.title || '')
+              };
+            }
+            return { url: '', label: '' };
+          })
+          .filter(entry => entry.url);
+        if (!manualLinks.length) return [];
+        const settled = await Promise.allSettled(manualLinks.map(async entry => {
+          const markdown = await fetchTextWithTimeout(buildCodetabsUrl(buildJinaUrl(entry.url)), 20000);
+          const item = parsePchomeProductMarkdown(markdown, { label: entry.label || '後台手動連結' }, entry.url);
+          return item && isThreeCRelatedTitle(item.title) ? item : null;
+        }));
+        return settled.flatMap(result => result.status === 'fulfilled' && result.value ? [result.value] : []);
+      } catch (error) {
+        return [];
+      }
+    }
+
     async function fetchLiveSource(source) {
       const responseText = await fetchTextWithTimeout(buildAllOriginsUrl(buildJinaUrl(source.url)), 20000);
       return parsePchomeCards(responseText, source);
     }
 
     async function loadLiveProducts(runId) {
+      const manualProductsPromise = loadManualSupplementProducts();
       const settled = await Promise.allSettled(LIVE_CATEGORY_SOURCES.map(source => fetchLiveSource(source)));
+      const manualProducts = await manualProductsPromise;
       if (runId !== state.loadRunId) return;
 
       const merged = [];
       const seen = new Set();
+      const appendUnique = item => {
+        const key = item.id || item.url || item.title;
+        if (!key || seen.has(key)) return;
+        seen.add(key);
+        merged.push(item);
+      };
       for (const result of settled) {
         if (result.status !== 'fulfilled') continue;
         for (const item of result.value || []) {
-          const key = item.id || item.url || item.title;
-          if (!key || seen.has(key)) continue;
-          seen.add(key);
-          merged.push(item);
+          appendUnique(item);
         }
+      }
+      for (const item of manualProducts || []) {
+        appendUnique(item);
       }
 
       if (merged.length) {
@@ -537,7 +632,7 @@
         return;
       }
 
-      state.products = fallbackProducts().map(normalizeItem);
+      state.products = fallbackProducts(manualProducts).map(normalizeItem);
       state.syncStatus = 'fallback';
       state.source = 'fallback';
       state.sourceLabel = '本機 3C 備援';
