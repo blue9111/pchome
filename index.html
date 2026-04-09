@@ -231,6 +231,26 @@
       return ((window.__PCHOME_SNAPSHOT__ || inlineFallbackProducts)).concat(extraProducts);
     }
 
+    function mergeProductLists(primaryProducts = [], secondaryProducts = []) {
+      const merged = new Map();
+      const order = [];
+      const addItem = (item, preferPrimary = false) => {
+        if (!item) return;
+        const key = item.id || item.url || item.title;
+        if (!key) return;
+        if (!merged.has(key)) {
+          merged.set(key, { ...item });
+          order.push(key);
+          return;
+        }
+        const current = merged.get(key);
+        merged.set(key, preferPrimary ? { ...current, ...item } : { ...item, ...current });
+      };
+      primaryProducts.forEach(item => addItem(item, true));
+      secondaryProducts.forEach(item => addItem(item, false));
+      return order.map(key => merged.get(key));
+    }
+
     const mobileMediaQuery = window.matchMedia('(max-width: 767px)');
     const isMobileViewport = () => mobileMediaQuery.matches;
     const getPageSize = () => isMobileViewport() ? 8 : 25;
@@ -578,10 +598,11 @@
       }
 
       if (merged.length) {
-        state.products = merged.map(normalizeItem);
-        state.syncStatus = 'live';
-        state.source = 'live';
-        state.sourceLabel = 'PChome 24h 3C 分類即時抓取';
+        const mergedProducts = mergeProductLists(merged, fallbackProducts());
+        state.products = mergedProducts.map(normalizeItem);
+        state.syncStatus = 'merged';
+        state.source = 'merged';
+        state.sourceLabel = 'PChome 24h 3C 分類即時抓取 + 本機 3C 備援合併';
         state.lastSyncAt = new Date();
         updateHeader();
         renderView();
@@ -630,9 +651,7 @@
       if (sourceMode) {
         sourceMode.textContent = loading
           ? '資料模式：PChome 3C 分類即時抓取中'
-          : state.syncStatus === 'fallback'
-            ? `資料模式：${state.sourceLabel || '本機 3C 備援'}`
-            : `資料模式：${state.sourceLabel || 'PChome 24h 3C 分類即時抓取'}`;
+          : `資料模式：${state.sourceLabel || 'PChome 24h 3C 分類即時抓取 + 本機 3C 備援合併'}`;
       }
       const itemTotal = document.getElementById('itemTotal');
       if (itemTotal) {
@@ -640,6 +659,8 @@
           ? '3C 分類資料抓取中'
           : state.syncStatus === 'fallback'
             ? `備援資料 ${totalCount} 筆 / 每頁 ${getPageSize()} 筆`
+            : state.syncStatus === 'merged'
+              ? `合併資料 ${totalCount} 筆 / 每頁 ${getPageSize()} 筆`
             : `3C 分類資料 ${totalCount} 筆 / 每頁 ${getPageSize()} 筆`;
       }
       const pageSizeLabel = document.getElementById('pageSizeLabel');
@@ -766,7 +787,9 @@
         const timestamp = formatTaipeiTimestamp(state.lastSyncAt);
         updateTime.textContent = state.syncStatus === 'fallback'
           ? `最後同步：${timestamp}（改用本機 3C 備援）`
-          : `最後同步：${timestamp}（Asia/Taipei）`;
+          : state.syncStatus === 'merged'
+            ? `最後同步：${timestamp}（即時抓取 + 本機備援合併）`
+            : `最後同步：${timestamp}（Asia/Taipei）`;
         return;
       }
       updateTime.textContent = '最後同步：尚未抓取';
