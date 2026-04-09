@@ -403,6 +403,61 @@
       };
     };
 
+    const LIVE_CACHE_KEY = 'pchome-live-cache-v2';
+    const SNAPSHOT_RAW_PRODUCTS = (() => {
+      const el = document.getElementById('snapshotData');
+      if (!el) return [];
+      try {
+        const parsed = JSON.parse(el.textContent || '[]');
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    })();
+    const readLiveCache = () => {
+      try {
+        const raw = localStorage.getItem(LIVE_CACHE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!parsed || !Array.isArray(parsed.products) || !parsed.products.length) return null;
+        return parsed;
+      } catch {
+        return null;
+      }
+    };
+    const writeLiveCache = products => {
+      try {
+        localStorage.setItem(LIVE_CACHE_KEY, JSON.stringify({
+          schemaVersion: 1,
+          savedAt: new Date().toISOString(),
+          products
+        }));
+      } catch {
+        // Ignore storage failures in private mode or blocked storage contexts.
+      }
+    };
+    const parseSafeDate = value => {
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? null : date;
+    };
+    const buildBootstrapState = () => {
+      const cached = readLiveCache();
+      if (cached) {
+        return {
+          source: 'cache',
+          sourceLabel: 'PChome 24h 3C 上次成功結果',
+          lastSyncAt: cached.savedAt ? parseSafeDate(cached.savedAt) : null,
+          products: cached.products.map(normalizeItem)
+        };
+      }
+      return {
+        source: 'snapshot',
+        sourceLabel: 'PChome 3C 分類快照骨架',
+        lastSyncAt: null,
+        products: SNAPSHOT_RAW_PRODUCTS.map(normalizeItem)
+      };
+    };
+
     // 手機 / 穿戴
     const CORE_LIVE_SOURCES = [
       { key: 'mobile', url: 'https://24h.pchome.com.tw/region/DGAS', label: '一般手機', category: 'mobile', limit: 8 },
@@ -571,13 +626,19 @@
         }
       }
 
+      if (!merged.length) {
+        state.syncStatus = 'live';
+        updateHeader();
+        renderView();
+        return;
+      }
+
       state.products = merged.map(normalizeItem);
       state.syncStatus = 'live';
       state.source = 'live';
-      state.sourceLabel = merged.length
-        ? 'PChome 24h 3C 分類即時抓取'
-        : 'PChome 24h 3C 分類即時抓取（目前無可顯示商品）';
+      state.sourceLabel = 'PChome 24h 3C 分類即時抓取';
       state.lastSyncAt = new Date();
+      writeLiveCache(state.products);
       updateHeader();
       renderView();
     }
@@ -591,6 +652,7 @@
     }
 
     function formatTaipeiTimestamp(date = new Date()) {
+      if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '未知時間';
       const parts = new Intl.DateTimeFormat('zh-TW', {
         timeZone: 'Asia/Taipei',
         year: 'numeric',
@@ -606,22 +668,35 @@
     }
 
     function updateMeta(visibleCount, totalCount, totalPages) {
-      const loading = state.syncStatus === 'loading' && totalCount === 0;
-      const visibleCountText = loading
+      const loading = state.syncStatus === 'loading';
+      const loadingWithItems = loading && totalCount > 0;
+      const visibleCountText = loading && totalCount === 0
         ? '正在從 PChome 抓取最新商品資料…'
-        : `目前顯示 ${visibleCount} / ${totalCount} 筆 · 第 ${state.page} / ${totalPages} 頁`;
+        : loadingWithItems
+          ? `目前顯示 ${visibleCount} / ${totalCount} 筆 · 第 ${state.page} / ${totalPages} 頁 · 背景更新中`
+          : `目前顯示 ${visibleCount} / ${totalCount} 筆 · 第 ${state.page} / ${totalPages} 頁`;
       document.getElementById('visible-count').textContent = visibleCountText;
       const sourceMode = document.getElementById('sourceMode');
       if (sourceMode) {
-        sourceMode.textContent = loading
-          ? '資料模式：PChome 3C 分類即時抓取中'
-          : `資料模式：${state.sourceLabel || 'PChome 24h 3C 分類即時抓取'}`;
+        if (loadingWithItems) {
+          const loadingLabel = state.source === 'cache' ? '上次成功結果' : '快照骨架';
+          sourceMode.textContent = `資料模式：${loadingLabel}（背景更新中）`;
+        } else {
+          sourceMode.textContent = loading
+            ? '資料模式：PChome 3C 分類即時抓取中'
+            : `資料模式：${state.sourceLabel || 'PChome 24h 3C 分類即時抓取'}`;
+        }
       }
       const itemTotal = document.getElementById('itemTotal');
       if (itemTotal) {
-        itemTotal.textContent = loading
-          ? '即時資料抓取中'
-          : `即時資料 ${totalCount} 筆 / 每頁 ${getPageSize()} 筆`;
+        if (loadingWithItems) {
+          const loadingLabel = state.source === 'cache' ? '上次成功結果' : '快照骨架';
+          itemTotal.textContent = `${loadingLabel} ${totalCount} 筆 / 每頁 ${getPageSize()} 筆`;
+        } else {
+          itemTotal.textContent = loading
+            ? '即時資料抓取中'
+            : `即時資料 ${totalCount} 筆 / 每頁 ${getPageSize()} 筆`;
+        }
       }
       const pageSizeLabel = document.getElementById('pageSizeLabel');
       if (pageSizeLabel) pageSizeLabel.textContent = `每頁 ${getPageSize()} 筆`;
@@ -739,6 +814,14 @@
       if (todayDate) todayDate.textContent = '今日日期：' + dateText;
       const updateTime = document.getElementById('update-time');
       if (!updateTime) return;
+      if (state.syncStatus === 'loading' && state.products.length > 0) {
+        const timestamp = state.lastSyncAt ? formatTaipeiTimestamp(state.lastSyncAt) : '';
+        const loadingLabel = state.source === 'cache' ? '上次成功結果，背景更新中' : '快照骨架，背景更新中';
+        updateTime.textContent = timestamp
+          ? `最後同步：${timestamp}（${loadingLabel}）`
+          : `最後同步：${loadingLabel}`;
+        return;
+      }
       if (state.syncStatus === 'loading' && state.products.length === 0) {
         updateTime.textContent = '最後同步：抓取中…';
         return;
@@ -963,11 +1046,12 @@
       state.loadRunId += 1;
       const runId = state.loadRunId;
       state.syncStatus = 'loading';
-      state.source = 'live';
-      state.sourceLabel = 'PChome 3C 分類即時抓取中';
-      state.lastSyncAt = null;
+      const bootstrap = buildBootstrapState();
+      state.source = bootstrap.source;
+      state.sourceLabel = bootstrap.sourceLabel;
+      state.lastSyncAt = bootstrap.lastSyncAt;
       state.page = 1;
-      state.products = [];
+      state.products = bootstrap.products;
       updateHeader();
       renderView();
       void loadLiveProducts(runId);
