@@ -78,7 +78,7 @@
         <div class="w-full max-w-3xl">
           <div class="mb-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.32em] text-slate-300">
             <span class="h-2 w-2 rounded-full bg-[#00ff7f] shadow-[0_0_14px_rgba(0,255,127,.95)] animate-pulse"></span>
-            今日即時抓取
+            今日 3C 即時抓取
           </div>
           <h1 class="display max-w-3xl whitespace-normal text-[clamp(1.15rem,5vw,3.25rem)] font-black tracking-[-0.04em] text-white leading-tight sm:whitespace-nowrap sm:leading-none">PChome 3C 特價情報板</h1>
           <p class="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">把 PChome 24h 的 3C 特價做成一頁式儀表板，先看圖和價格，再看折扣、來源設定。</p>
@@ -88,15 +88,15 @@
           <div class="mt-3 flex items-center gap-3">
             <span class="h-3 w-3 rounded-full bg-[#00ff7f] shadow-[0_0_16px_rgba(0,255,127,.95)] animate-pulse"></span>
             <div>
-              <div class="text-lg font-bold text-white">已同步 · PChome 即時抓取</div>
+              <div class="text-lg font-bold text-white">已同步 · PChome 3C 分類</div>
               <div id="update-time" class="text-sm text-slate-400">最後同步：尚未抓取</div>
             </div>
           </div>
           <div class="mt-4 flex flex-wrap gap-2">
             <span class="badge-green rounded-full px-3 py-1 text-xs font-semibold">狀態正常</span>
-            <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">來源：PChome 24h 站內搜尋</span>
-            <span id="sourceMode" class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">資料模式：PChome 即時抓取中</span>
-            <span id="itemTotal" class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">即時資料抓取中</span>
+            <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">來源：PChome 24h 3C 分類頁</span>
+            <span id="sourceMode" class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">資料模式：PChome 3C 分類即時抓取中</span>
+            <span id="itemTotal" class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">3C 分類資料抓取中</span>
           </div>
           <div id="today-date" class="mt-4 text-sm text-slate-300">載入日期中...</div>
         </div>
@@ -200,7 +200,7 @@
       </div>
     </section>
 
-    <footer class="mt-6 pb-8 text-center text-xs text-slate-500">3C 風格即時板 · 單檔 HTML / Tailwind / JS</footer>
+    <footer class="mt-6 pb-8 text-center text-xs text-slate-500">3C 類即時板 · 單檔 HTML / Tailwind / JS</footer>
   </main>
 
   <script id="snapshotData" type="application/json">
@@ -240,7 +240,7 @@
       return mode;
     };
     let currentDeviceMode = syncDeviceMode();
-    const state = { products: [], filter: 'all', filterTouched: false, query: '', sort: 'discount-desc', source: 'live', syncStatus: 'loading', sourceLabel: 'PChome 即時抓取中', lastSyncAt: null, loadRunId: 0, page: 1, avoidRotationIndex: 0, avoidRotationItems: [], avoidRotationDate: '' };
+    const state = { products: [], filter: 'all', filterTouched: false, query: '', sort: 'discount-desc', source: 'live', syncStatus: 'loading', sourceLabel: 'PChome 3C 分類即時抓取中', lastSyncAt: null, loadRunId: 0, page: 1, avoidRotationIndex: 0, avoidRotationItems: [], avoidRotationDate: '' };
     const autoRefreshMs = 10 * 60 * 1000;
     let autoRefreshTimer = null;
     let avoidRotationTimer = null;
@@ -425,19 +425,15 @@
       };
     };
 
-    const LIVE_QUERY_SOURCES = [
-      { key: 'ssd', query: 'SSD', label: 'SSD', limit: 4 },
-      { key: 'router', query: '路由器', label: '路由器', limit: 4 },
-      { key: 'keyboard', query: '鍵盤', label: '鍵盤', limit: 4 },
-      { key: 'mobile', query: 'vivo', label: 'vivo', limit: 4 },
-      { key: 'tablet', query: '平板', label: '平板', limit: 4 },
-      { key: 'earphones', query: '藍牙耳機', label: '藍牙耳機', limit: 4 },
-      { key: 'powerbank', query: '行動電源', label: '行動電源', limit: 4 },
-      { key: 'watch-garmin', query: 'Garmin', label: 'Garmin', limit: 4 },
-      { key: 'watch-galaxy', query: 'Galaxy Watch', label: 'Galaxy Watch', limit: 4 },
-      { key: 'projector', query: '投影機', label: '投影機', limit: 4 }
+    const LIVE_CATEGORY_SOURCES = [
+      { key: 'mobile', url: 'https://24h.pchome.com.tw/region/DGAS', label: '一般手機', category: 'mobile', limit: 8 },
+      { key: 'wearable', url: 'https://24h.pchome.com.tw/region/DYAI', label: '智慧穿戴', category: 'wearable', limit: 6 },
+      { key: 'computer-network', url: 'https://24h.pchome.com.tw/region/DRAF', label: '網路', category: 'computer', limit: 8 },
+      { key: 'computer-accessory', url: 'https://24h.pchome.com.tw/region/DCAG', label: '筆電周邊/配件', category: 'computer', limit: 8 },
+      { key: 'computer-gaming', url: 'https://24h.pchome.com.tw/region/DSAX', label: '電競專區', category: 'computer', limit: 8 }
     ];
 
+    const buildJinaUrl = url => `https://r.jina.ai/http://${String(url || '').replace(/^https?:\/\//, '')}`;
     const buildAllOriginsUrl = url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}&_=${Date.now()}`;
     const parseMoneyText = text => {
       const normalized = String(text || '').replace(/[^\d]/g, '');
@@ -463,34 +459,46 @@
         clearTimeout(timer);
       }
     }
-    function parsePchomeCards(html, source) {
-      const doc = new DOMParser().parseFromString(html, 'text/html');
-      const cards = [...doc.querySelectorAll('.c-prodInfoV2')];
+    function parsePchomeCards(markdown, source) {
+      const lines = String(markdown || '').split(/\r?\n/);
       const items = [];
       const seen = new Set();
-      for (const card of cards) {
-        const link = card.querySelector('a.c-prodInfoV2__link') || card.querySelector('.c-prodInfoV2__otherFunctions a');
-        const href = link?.getAttribute('href') || '';
-        if (!/\/prod\//i.test(href)) continue;
-        const id = extractProductId(href);
+      for (const rawLine of lines) {
+        const line = rawLine.trim();
+        if (!line.includes('http://24h.pchome.com.tw/prod/')) continue;
+        const urlMatch = line.match(/\]\((https?:\/\/24h\.pchome\.com\.tw\/prod\/[^)]+)\)\s*$/);
+        const imageMatch = line.match(/^\[!\[Image\s+\d+:\s*(.*?)\]\((.*?)\)/);
+        if (!urlMatch || !imageMatch) continue;
+        const url = urlMatch[1];
+        const id = extractProductId(url);
         if (!id || seen.has(id)) continue;
-        const title = normalizeSpaces(card.querySelector('.c-prodInfoV2__title')?.textContent || card.querySelector('img')?.getAttribute('alt') || '');
-        const currentPriceText = card.querySelector('.c-prodInfoV2__priceBar .c-prodInfoV2__priceValue')?.textContent || '';
-        const salePriceText = card.querySelector('.c-prodInfoV2__salePrice .c-prodInfoV2__priceValue')?.textContent || '';
-        const price = parseMoneyText(currentPriceText) || parseMoneyText(salePriceText);
-        const originalPrice = parseMoneyText(salePriceText) || price;
-        const image = toAbsoluteUrl(card.querySelector('img')?.getAttribute('src') || card.querySelector('img')?.src || '');
+        const image = toAbsoluteUrl(imageMatch[2]);
+        const body = line
+          .replace(/^\[!\[Image\s+\d+:\s*.*?\]\(.*?\)\s*/, '')
+          .replace(/!\[Image\s+\d+:[^\]]*\]\([^)]*\)\s*/g, ' ')
+          .replace(/\]\((https?:\/\/24h\.pchome\.com\.tw\/prod\/[^)]+)\)\s*$/, '')
+          .replace(/\s+/g, ' ')
+          .trim();
+        const titleMatch = body.match(/###\s*(.*?)\s+\$(\d[\d,]*)(?:\s+\$(\d[\d,]*))?/);
+        if (!titleMatch) continue;
+        const title = normalizeSpaces(titleMatch[1]);
+        if (!isThreeCRelatedTitle(title)) continue;
+        const price = parseMoneyText(titleMatch[2]);
+        const originalPrice = parseMoneyText(titleMatch[3]) || price;
         if (!title || !price || !image) continue;
+        const leadText = normalizeSpaces(body.slice(0, body.indexOf('###')).replace(/^[\s*•]+|[\s*•]+$/g, ''));
         seen.add(id);
         items.push({
           id,
           title,
-          spec: normalizeSpaces(card.querySelector('img')?.getAttribute('alt') || source.label || title),
+          spec: leadText || normalizeSpaces(imageMatch[1]) || source.label || title,
           price,
           originalPrice: originalPrice > price ? originalPrice : price,
           image,
-          url: new URL(href, 'https://24h.pchome.com.tw').href,
-          query: source.label || source.query || 'PChome 即時抓取'
+          url,
+          category: source.category || detectCategory(title),
+          query: source.label || source.title || 'PChome 3C 分類',
+          promo: leadText
         });
         if (items.length >= (source.limit || 4)) break;
       }
@@ -498,15 +506,12 @@
     }
 
     async function fetchLiveSource(source) {
-      const responseText = await fetchTextWithTimeout(buildAllOriginsUrl(source.url));
+      const responseText = await fetchTextWithTimeout(buildAllOriginsUrl(buildJinaUrl(source.url)), 20000);
       return parsePchomeCards(responseText, source);
     }
 
     async function loadLiveProducts(runId) {
-      const settled = await Promise.allSettled(LIVE_QUERY_SOURCES.map(source => fetchLiveSource({
-        ...source,
-        url: `https://24h.pchome.com.tw/search/?q=${encodeURIComponent(source.query)}`
-      })));
+      const settled = await Promise.allSettled(LIVE_CATEGORY_SOURCES.map(source => fetchLiveSource(source)));
       if (runId !== state.loadRunId) return;
 
       const merged = [];
@@ -525,7 +530,7 @@
         state.products = merged.map(normalizeItem);
         state.syncStatus = 'live';
         state.source = 'live';
-        state.sourceLabel = 'PChome 24h 即時抓取';
+        state.sourceLabel = 'PChome 24h 3C 分類即時抓取';
         state.lastSyncAt = new Date();
         updateHeader();
         renderView();
@@ -535,7 +540,7 @@
       state.products = fallbackProducts().map(normalizeItem);
       state.syncStatus = 'fallback';
       state.source = 'fallback';
-      state.sourceLabel = '本機快照備援';
+      state.sourceLabel = '本機 3C 備援';
       state.lastSyncAt = new Date();
       updateHeader();
       renderView();
@@ -573,18 +578,18 @@
       const sourceMode = document.getElementById('sourceMode');
       if (sourceMode) {
         sourceMode.textContent = loading
-          ? '資料模式：PChome 即時抓取中'
+          ? '資料模式：PChome 3C 分類即時抓取中'
           : state.syncStatus === 'fallback'
-            ? `資料模式：${state.sourceLabel || '本機快照備援'}`
-            : `資料模式：${state.sourceLabel || 'PChome 24h 即時抓取'}`;
+            ? `資料模式：${state.sourceLabel || '本機 3C 備援'}`
+            : `資料模式：${state.sourceLabel || 'PChome 24h 3C 分類即時抓取'}`;
       }
       const itemTotal = document.getElementById('itemTotal');
       if (itemTotal) {
         itemTotal.textContent = loading
-          ? '即時資料抓取中'
+          ? '3C 分類資料抓取中'
           : state.syncStatus === 'fallback'
-            ? `快照資料 ${totalCount} 筆 / 每頁 ${getPageSize()} 筆`
-            : `即時資料 ${totalCount} 筆 / 每頁 ${getPageSize()} 筆`;
+            ? `備援資料 ${totalCount} 筆 / 每頁 ${getPageSize()} 筆`
+            : `3C 分類資料 ${totalCount} 筆 / 每頁 ${getPageSize()} 筆`;
       }
       const pageSizeLabel = document.getElementById('pageSizeLabel');
       if (pageSizeLabel) pageSizeLabel.textContent = `每頁 ${getPageSize()} 筆`;
@@ -638,7 +643,7 @@
     }
 
     function renderLoadingState() {
-      const message = '正在從 PChome 抓取最新商品資料，請稍候…';
+      const message = '正在從 PChome 3C 分類抓取最新商品資料，請稍候…';
       const tableBody = document.getElementById('tableBody');
       const mobileList = document.getElementById('mobileProductList');
       const box = document.getElementById('avoidBox');
@@ -709,7 +714,7 @@
       if (state.lastSyncAt) {
         const timestamp = formatTaipeiTimestamp(state.lastSyncAt);
         updateTime.textContent = state.syncStatus === 'fallback'
-          ? `最後同步：${timestamp}（改用本機快照）`
+          ? `最後同步：${timestamp}（改用本機 3C 備援）`
           : `最後同步：${timestamp}（Asia/Taipei）`;
         return;
       }
@@ -929,7 +934,7 @@
       const runId = state.loadRunId;
       state.syncStatus = 'loading';
       state.source = 'live';
-      state.sourceLabel = 'PChome 24h 即時抓取中';
+      state.sourceLabel = 'PChome 3C 分類即時抓取中';
       state.lastSyncAt = null;
       state.page = 1;
       state.products = [];
