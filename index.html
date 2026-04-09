@@ -240,7 +240,7 @@
       return mode;
     };
     let currentDeviceMode = syncDeviceMode();
-    const state = { products: [], filter: 'all', query: '', sort: 'discount-desc', source: 'fallback', page: 1, avoidRotationIndex: 0, avoidRotationItems: [], avoidRotationDate: '' };
+    const state = { products: [], filter: 'all', filterTouched: false, query: '', sort: 'discount-desc', source: 'fallback', page: 1, avoidRotationIndex: 0, avoidRotationItems: [], avoidRotationDate: '' };
     const autoRefreshMs = 10 * 60 * 1000;
     let autoRefreshTimer = null;
     let avoidRotationTimer = null;
@@ -489,6 +489,7 @@
     }
 
     function renderView() {
+      applyDeviceDefaultFilter();
       const allItems = getVisibleItems();
       const pageSize = getPageSize();
       const totalPages = Math.max(1, Math.ceil(allItems.length / pageSize));
@@ -710,8 +711,18 @@
 
     function applyFilter(filter) {
       state.filter = filter;
+      state.filterTouched = true;
       state.page = 1;
       renderView();
+    }
+
+    function applyDeviceDefaultFilter(force = false) {
+      if (state.filterTouched && !force) return;
+      const nextFilter = isMobileViewport() ? 'strong' : 'all';
+      if (force || state.filter !== nextFilter) {
+        state.filter = nextFilter;
+        state.page = 1;
+      }
     }
 
     function reloadSnapshotScript() {
@@ -771,6 +782,7 @@
 
     document.addEventListener('DOMContentLoaded', async () => {
       syncDeviceMode();
+      applyDeviceDefaultFilter(true);
       updateHeader();
       initControls();
       await loadSnapshot(false);
@@ -781,7 +793,7 @@
       const nextMode = syncDeviceMode();
       if (nextMode !== currentDeviceMode) {
         currentDeviceMode = nextMode;
-        state.page = 1;
+        applyDeviceDefaultFilter();
         renderView();
       }
     };
