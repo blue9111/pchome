@@ -209,48 +209,6 @@
   </script>
 
   <script>
-    const snapshotDataNode = document.getElementById('snapshotData');
-    try {
-      window.__PCHOME_SNAPSHOT__ = snapshotDataNode ? JSON.parse(snapshotDataNode.textContent.trim()) : [];
-    } catch (error) {
-      window.__PCHOME_SNAPSHOT__ = [];
-    }
-
-    const extraProducts = [
-      { title:'Apple 蘋果 Apple Watch Ultra 3 GPS + LTE 49mm 黑色鈦金屬錶殼搭配黑色海洋錶帶', spec:'Apple Watch Ultra 3 GPS + LTE 49mm 黑色鈦 錶殼搭配黑色海洋錶帶', price:25555, originalPrice:26900, image:'https://cs-a.ecimg.tw/items/DYAJCLA900J836T/000001_1757924323.jpg', url:'https://24h.pchome.com.tw/prod/DYAJCL-A900J836T' }
-    ];
-    const inlineFallbackProducts = [
-      { title:'ACER 16吋i5-RTX4050電競筆電', spec:'i5 / RTX 4050 / 16G / 512G SSD / 16 吋', price:35900, originalPrice:39900, image:'https://img.pchome.com.tw/cs/items/DHAEJ3A900JJPYK/000007_1765516721.jpg', url:'https://24h.pchome.com.tw/prod/DHAEJ3-A900JJPYK', category:'computer', rating:'strong', label:'強烈推薦', note:'遊戲筆電主力機，效能及價格平衡感不錯。', audience:'遊戲、剪片、需要一台撐得住的主力筆電', volcano:'RTX 4050 + 16 吋，這種組合就是要拿來衝第一線。' },
-      { title:'三星65型 QLED顯示器', spec:'65 吋 / QLED / 大尺寸居家娛樂', price:26900, originalPrice:42900, image:'https://img.pchome.com.tw/cs/items/DPADEWA900JKR7W/000007_1766241398.jpg', url:'https://24h.pchome.com.tw/prod/DPADEW-A900JKR7W', category:'computer', rating:'strong', label:'強烈推薦', note:'折扣幅度大，適合直接抓來看家用大螢幕。', audience:'客廳大螢幕、追劇、家庭娛樂', volcano:'大尺寸 + 37% 折幅，視覺上很有感。' },
-      { title:'ACER 15.6吋AI效能筆電(R7/16G/1TB)', spec:'R7 / 16G / 1TB / 15.6 吋', price:20688, originalPrice:23900, image:'https://img.pchome.com.tw/cs/items/DHAEJ3A900J246J/000007_1753253941.jpg', url:'https://24h.pchome.com.tw/prod/DHAEJ3-A900J246J', category:'computer', rating:'consider', label:'值得考慮', note:'效能不差，容量也給得夠，但不是最殺的那種。', audience:'文書多工、入門創作、想要大容量的人', volcano:'1TB 是亮點，規格實用但價格還沒到爆炸甜。' },
-      { title:'Bose Ultra 開放式藍牙耳機', spec:'開放式聆聽 / 藍牙 / 通勤運動', price:7490, originalPrice:9500, image:'https://img.pchome.com.tw/cs/items/DGCT19A900H9IZF/000007_1710993960.jpg', url:'https://24h.pchome.com.tw/prod/DGCT19-A900H9IZF', category:'mobile', rating:'consider', label:'值得考慮', note:'品牌及體驗有優勢，但折扣不是一刀見血型。', audience:'通勤、運動、想要開放式耳機的人', volcano:'不錯聽，但不是今天最值得先掏錢的主角。' },
-      { title:'金士頓512GB 雙介面行動固態硬碟', spec:'512GB / 雙介面 / 行動 SSD', price:2899, originalPrice:4599, image:'https://img.pchome.com.tw/cs/items/DRAAAHA900JTU8N/000007_1773824928.jpg', url:'https://24h.pchome.com.tw/prod/DRAAAH-A900JTU8N', category:'computer', rating:'consider', label:'值得考慮', note:'儲存裝置折扣不錯，實用派可以直接看。', audience:'備份、外接資料、攝影及工作檔案搬運', volcano:'容量及價格都在合理區間，穩穩的加分項。' },
-      { title:'Glolux 流星錘3插3USB延長線1.5米 2入組', spec:'3 插 3 USB / 1.5 米 / 2 入組', price:599, originalPrice:1198, image:'https://img.pchome.com.tw/cs/items/DQBE2M1900JDO0N/000007_1772790077.jpg', url:'https://24h.pchome.com.tw/prod/DQBE2M-1900JDO0N', category:'accessory', rating:'avoid', label:'不推薦', note:'折扣很甜，但這種配件拿來當 3C 狙擊主角，焦點有點跑偏。', audience:'真的缺延長線的人', volcano:'不是壞，是不夠像主角；拿來湊單可以，拿來衝榜有點尷尬。' }
-    ];
-    function fallbackProducts() {
-      return ((window.__PCHOME_SNAPSHOT__ || inlineFallbackProducts)).concat(extraProducts);
-    }
-
-    function mergeProductLists(primaryProducts = [], secondaryProducts = []) {
-      const merged = new Map();
-      const order = [];
-      const addItem = (item, preferPrimary = false) => {
-        if (!item) return;
-        const key = item.id || item.url || item.title;
-        if (!key) return;
-        if (!merged.has(key)) {
-          merged.set(key, { ...item });
-          order.push(key);
-          return;
-        }
-        const current = merged.get(key);
-        merged.set(key, preferPrimary ? { ...current, ...item } : { ...item, ...current });
-      };
-      primaryProducts.forEach(item => addItem(item, true));
-      secondaryProducts.forEach(item => addItem(item, false));
-      return order.map(key => merged.get(key));
-    }
-
     const mobileMediaQuery = window.matchMedia('(max-width: 767px)');
     const isMobileViewport = () => mobileMediaQuery.matches;
     const getPageSize = () => isMobileViewport() ? 8 : 25;
@@ -597,22 +555,12 @@
         }
       }
 
-      if (merged.length) {
-        const mergedProducts = mergeProductLists(merged, fallbackProducts());
-        state.products = mergedProducts.map(normalizeItem);
-        state.syncStatus = 'merged';
-        state.source = 'merged';
-        state.sourceLabel = 'PChome 24h 3C 分類即時抓取 + 本機 3C 備援合併';
-        state.lastSyncAt = new Date();
-        updateHeader();
-        renderView();
-        return;
-      }
-
-      state.products = fallbackProducts().map(normalizeItem);
-      state.syncStatus = 'fallback';
-      state.source = 'fallback';
-      state.sourceLabel = '本機 3C 備援';
+      state.products = merged.map(normalizeItem);
+      state.syncStatus = 'live';
+      state.source = 'live';
+      state.sourceLabel = merged.length
+        ? 'PChome 24h 3C 分類即時抓取'
+        : 'PChome 24h 3C 分類即時抓取（目前無可顯示商品）';
       state.lastSyncAt = new Date();
       updateHeader();
       renderView();
@@ -651,17 +599,13 @@
       if (sourceMode) {
         sourceMode.textContent = loading
           ? '資料模式：PChome 3C 分類即時抓取中'
-          : `資料模式：${state.sourceLabel || 'PChome 24h 3C 分類即時抓取 + 本機 3C 備援合併'}`;
+          : `資料模式：${state.sourceLabel || 'PChome 24h 3C 分類即時抓取'}`;
       }
       const itemTotal = document.getElementById('itemTotal');
       if (itemTotal) {
         itemTotal.textContent = loading
-          ? '3C 分類資料抓取中'
-          : state.syncStatus === 'fallback'
-            ? `備援資料 ${totalCount} 筆 / 每頁 ${getPageSize()} 筆`
-            : state.syncStatus === 'merged'
-              ? `合併資料 ${totalCount} 筆 / 每頁 ${getPageSize()} 筆`
-            : `3C 分類資料 ${totalCount} 筆 / 每頁 ${getPageSize()} 筆`;
+          ? '即時資料抓取中'
+          : `即時資料 ${totalCount} 筆 / 每頁 ${getPageSize()} 筆`;
       }
       const pageSizeLabel = document.getElementById('pageSizeLabel');
       if (pageSizeLabel) pageSizeLabel.textContent = `每頁 ${getPageSize()} 筆`;
@@ -785,11 +729,7 @@
       }
       if (state.lastSyncAt) {
         const timestamp = formatTaipeiTimestamp(state.lastSyncAt);
-        updateTime.textContent = state.syncStatus === 'fallback'
-          ? `最後同步：${timestamp}（改用本機 3C 備援）`
-          : state.syncStatus === 'merged'
-            ? `最後同步：${timestamp}（即時抓取 + 本機備援合併）`
-            : `最後同步：${timestamp}（Asia/Taipei）`;
+        updateTime.textContent = `最後同步：${timestamp}（Asia/Taipei）`;
         return;
       }
       updateTime.textContent = '最後同步：尚未抓取';
