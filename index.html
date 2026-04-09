@@ -56,6 +56,8 @@
     tbody tr:hover td { background:rgba(255,255,255,.02); }
     html[data-device="mobile"] .desktop-only { display:none !important; }
     html[data-device="desktop"] .mobile-only { display:none !important; }
+    html[data-layout="desktop"] .desktop-only { display:block !important; }
+    html[data-layout="desktop"] .mobile-only { display:none !important; }
     .is-hidden { display:none !important; }
     .flash { animation:flash .9s ease-out 1; }
     .avoid-swap { animation:avoidSwap .35s ease; }
@@ -233,7 +235,8 @@
 
     const mobileMediaQuery = window.matchMedia('(max-width: 767px)');
     const isMobileViewport = () => mobileMediaQuery.matches;
-    const getPageSize = () => isMobileViewport() ? 8 : 25;
+    const isDesktopLayout = () => !isMobileViewport() || state.filter === 'all';
+    const getPageSize = () => isDesktopLayout() ? 25 : 8;
     const syncDeviceMode = () => {
       const mode = isMobileViewport() ? 'mobile' : 'desktop';
       document.documentElement.dataset.device = mode;
@@ -490,20 +493,22 @@
 
     function renderView() {
       applyDeviceDefaultFilter();
+      const desktopLayout = isDesktopLayout();
+      document.documentElement.dataset.layout = desktopLayout ? 'desktop' : 'mobile';
       const allItems = getVisibleItems();
       const pageSize = getPageSize();
       const totalPages = Math.max(1, Math.ceil(allItems.length / pageSize));
       state.page = Math.min(Math.max(state.page, 1), totalPages);
       const start = (state.page - 1) * pageSize;
       const pageItems = allItems.slice(start, start + pageSize);
-      if (isMobileViewport()) {
-        renderMobileList(pageItems);
-        const tbody = document.getElementById('tableBody');
-        if (tbody) tbody.innerHTML = '';
-      } else {
+      if (desktopLayout) {
         renderTable(pageItems);
         const list = document.getElementById('mobileProductList');
         if (list) list.innerHTML = '';
+      } else {
+        renderMobileList(pageItems);
+        const tbody = document.getElementById('tableBody');
+        if (tbody) tbody.innerHTML = '';
       }
       renderAvoid(allItems);
       updateMeta(pageItems.length, allItems.length, totalPages);
