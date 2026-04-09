@@ -1,0 +1,687 @@
+﻿<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PChome 3C 特價情報板</title>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { neon: '#00ff7f', danger: '#ff4d4d' },
+          fontFamily: {
+            sans: ['"Noto Sans TC"', 'sans-serif'],
+            display: ['"Space Grotesk"', '"Noto Sans TC"', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet" />
+  <style>
+    :root { --neon:#00ff7f; --danger:#ff4d4d; --line:rgba(255,255,255,.08); --panel:rgba(10,16,23,.78); }
+    html { scroll-behavior:smooth; }
+    body { font-family:"Noto Sans TC",sans-serif; color:#e5eef5; background:radial-gradient(circle at top left,rgba(0,255,127,.12),transparent 28%), radial-gradient(circle at 80% 20%,rgba(59,130,246,.10),transparent 20%), radial-gradient(circle at bottom right,rgba(255,77,77,.10),transparent 24%), linear-gradient(180deg,#050910 0%,#08111a 48%,#04070d 100%); }
+    h1,h2,h3,.display { font-family:"Space Grotesk","Noto Sans TC",sans-serif; }
+    .glass { background:var(--panel); border:1px solid var(--line); backdrop-filter:blur(18px); }
+    .neon-border { box-shadow:0 0 0 1px rgba(0,255,127,.16), 0 0 30px rgba(0,255,127,.08); }
+    .danger-border { box-shadow:0 0 0 1px rgba(255,77,77,.16), 0 0 30px rgba(255,77,77,.08); }
+    .badge-green { color:var(--neon); background:rgba(0,255,127,.10); border:1px solid rgba(0,255,127,.22); }
+    .badge-red { color:var(--danger); background:rgba(255,77,77,.10); border:1px solid rgba(255,77,77,.22); }
+    .badge-amber { color:#fbbf24; background:rgba(251,191,36,.10); border:1px solid rgba(251,191,36,.22); }
+    .rating-badge {
+      white-space: nowrap;
+      line-height: 1;
+    }
+    .clamp-1 {
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .chip,.filter-box,.summary-item,.hot-card { transition:all .18s ease; }
+    .chip.active { background:rgba(0,255,127,.12); border-color:rgba(0,255,127,.44); color:#f1fff7; box-shadow:0 0 0 1px rgba(0,255,127,.10), 0 0 18px rgba(0,255,127,.12); }
+    .filter-box.active { background:rgba(0,255,127,.10); border-color:rgba(0,255,127,.34); box-shadow:0 0 0 1px rgba(0,255,127,.08), 0 0 18px rgba(0,255,127,.10); }
+    .summary-item:hover,.hot-card:hover { transform:translateY(-2px); border-color:rgba(0,255,127,.22); }
+    tbody tr[data-rating="avoid"] { opacity:.58; }
+    tbody tr:hover td { background:rgba(255,255,255,.02); }
+    .is-hidden { display:none !important; }
+    .flash { animation:flash .9s ease-out 1; }
+    .avoid-swap { animation:avoidSwap .35s ease; }
+    @keyframes flash { 0% { box-shadow:0 0 0 0 rgba(0,255,127,0); } 30% { box-shadow:0 0 0 1px rgba(0,255,127,.20), 0 0 28px rgba(0,255,127,.16); } 100% { box-shadow:0 0 0 0 rgba(0,255,127,0); } }
+    @keyframes avoidSwap { 0% { opacity:0; transform:translateY(8px) scale(.985); } 100% { opacity:1; transform:translateY(0) scale(1); } }
+    .bg-grid { background-image:linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px); background-size:28px 28px; mask-image:linear-gradient(to bottom, rgba(0,0,0,.9), transparent 100%); }
+  </style>
+</head>
+<body>
+  <div class="pointer-events-none fixed inset-0 overflow-hidden">
+    <div class="absolute inset-0 bg-grid opacity-20"></div>
+    <div class="absolute -top-28 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-[#00ff7f]/10 blur-3xl"></div>
+    <div class="absolute bottom-0 right-0 h-[30rem] w-[30rem] rounded-full bg-[#ff4d4d]/10 blur-3xl"></div>
+    <div class="absolute top-1/3 left-0 h-64 w-64 rounded-full bg-sky-400/10 blur-3xl"></div>
+  </div>
+
+  <main class="relative mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
+    <header class="glass neon-border rounded-[2rem] p-5 sm:p-7">
+      <div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+        <div class="max-w-3xl">
+          <div class="mb-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.32em] text-slate-300">
+            <span class="h-2 w-2 rounded-full bg-[#00ff7f] shadow-[0_0_14px_rgba(0,255,127,.95)] animate-pulse"></span>
+            今日資料快照
+          </div>
+          <h1 class="display whitespace-nowrap text-[clamp(1.15rem,5vw,3.25rem)] font-black tracking-[-0.04em] text-white leading-none">PChome 3C 特價情報板</h1>
+          <p class="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">把 PChome 24h 的 3C 特價做成一頁式儀表板，先看圖和價格，再看折扣、來源設定。</p>
+        </div>
+        <div class="glass rounded-[1.6rem] p-5 sm:min-w-[330px]">
+          <div class="text-xs font-semibold uppercase tracking-[0.28em] text-slate-400">今日情報更新狀態</div>
+          <div class="mt-3 flex items-center gap-3">
+            <span class="h-3 w-3 rounded-full bg-[#00ff7f] shadow-[0_0_16px_rgba(0,255,127,.95)] animate-pulse"></span>
+            <div>
+              <div class="text-lg font-bold text-white">已更新 · PChome 快照</div>
+              <div id="update-time" class="text-sm text-slate-400">快照時間 --:--</div>
+            </div>
+          </div>
+          <div class="mt-4 flex flex-wrap gap-2">
+            <span class="badge-green rounded-full px-3 py-1 text-xs font-semibold">狀態正常</span>
+            <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">來源：PChome 24h 站內搜尋</span>
+            <span id="sourceMode" class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">資料模式：單檔內嵌快照</span>
+            <span id="itemTotal" class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">資料 0 筆</span>
+          </div>
+          <div id="today-date" class="mt-4 text-sm text-slate-300">載入日期中...</div>
+        </div>
+      </div>
+    </header>
+
+    <section class="mt-6 grid gap-6 xl:grid-cols-[280px_1fr]">
+      <aside class="glass rounded-[1.8rem] p-5">
+        <div class="flex items-center justify-between">
+          <h2 class="display text-xl font-black text-white">分類導覽</h2>
+          <span class="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-slate-400">PChome 24h</span>
+        </div>
+        <div class="mt-4 space-y-3">
+          <button class="filter-box active w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-left" data-filter="all"><div class="text-sm font-semibold text-white">全部看板</div><div class="mt-1 text-xs text-slate-400">顯示所有商品及評級</div></button>
+          <button class="filter-box w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-left" data-filter="strong"><div class="text-sm font-semibold text-white">強烈推薦</div><div class="mt-1 text-xs text-slate-400">優先看電競綠卡片</div></button>
+          <button class="filter-box w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-left" data-filter="computer"><div class="text-sm font-semibold text-white">電腦類</div><div class="mt-1 text-xs text-slate-400">筆電、螢幕、SSD、主機</div></button>
+          <button class="filter-box w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-left" data-filter="mobile"><div class="text-sm font-semibold text-white">手機類</div><div class="mt-1 text-xs text-slate-400">手機、平板、耳機、行動裝置</div></button>
+          <button class="filter-box w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-left" data-filter="wearable"><div class="text-sm font-semibold text-white">穿戴裝置</div><div class="mt-1 text-xs text-slate-400">Apple Watch、手錶、手環</div></button>
+        </div>
+        <div class="mt-5 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm leading-7 text-slate-300">參考頁重點是「一頁看完、快速比價、快速判斷」；電腦類、手機類及穿戴裝置只顯示對應主力分類，其他 3C 會留在「全部看板」。</div>
+      </aside>
+
+      <div class="space-y-6">
+        <section>
+          <div class="mb-4 flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
+            <div>
+              <h2 class="display text-2xl font-black text-white">搜尋 / 排序</h2>
+              <p class="mt-2 text-sm text-slate-400">先調整條件，再看下方表格、避雷針。</p>
+            </div>
+            <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+              <label class="relative">
+                <span class="sr-only">搜尋商品</span>
+                <input id="searchInput" type="search" placeholder="搜尋商品名稱 / 規格" class="w-full min-w-[220px] rounded-full border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder:text-slate-500 outline-none ring-0 transition focus:border-[#00ff7f]/40 focus:bg-white/8 sm:w-[260px]" />
+              </label>
+              <select id="sortSelect" class="rounded-full border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-slate-200 outline-none transition focus:border-[#00ff7f]/40">
+                <option value="discount-desc">折扣高到低</option>
+                <option value="price-asc">價格低到高</option>
+                <option value="price-desc">價格高到低</option>
+                <option value="title-asc">名稱 A-Z</option>
+              </select>
+              <button id="reloadBtn" class="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-slate-200 hover:border-[#00ff7f]/40 hover:text-white">重新整理快照</button>
+            </div>
+          </div>
+          <div class="mb-3 flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
+            <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1">快照模式：每 10 分鐘重整</span>
+            <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1">搜尋會同步影響表格、避雷針</span>
+          </div>
+        </section>
+
+        <section class="glass rounded-[2rem] p-5 sm:p-6">
+          <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div><h2 class="display text-2xl font-black text-white">深度評估表</h2><p class="mt-2 text-sm text-slate-400">列出今日所有 3C 相關特價，並可用篩選按鈕快速縮小範圍。</p></div>
+            <div class="text-sm text-slate-400"><span id="visible-count">目前顯示 0 / 0 筆</span></div>
+          </div>
+          <div class="mt-5 flex flex-wrap gap-2">
+            <button class="chip active rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-200" data-filter="all">全部</button>
+            <button class="chip rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-200" data-filter="strong">強烈推薦</button>
+            <button class="chip rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-200" data-filter="computer">電腦類</button>
+            <button class="chip rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-200" data-filter="mobile">手機類</button>
+            <button class="chip rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-200" data-filter="wearable">穿戴裝置</button>
+          </div>
+          <div class="mt-5 overflow-x-auto overflow-y-visible rounded-[1.4rem] border border-white/10">
+            <table class="min-w-[980px] w-full table-fixed border-collapse text-left">
+              <colgroup>
+                <col style="width:280px" />
+                <col style="width:220px" />
+                <col style="width:180px" />
+                <col style="width:170px" />
+                <col style="width:128px" />
+              </colgroup>
+              <thead class="sticky top-0 z-10 bg-slate-950/90 backdrop-blur-xl">
+                <tr class="border-b border-white/10 text-xs uppercase tracking-[0.22em] text-slate-400">
+                  <th class="px-4 py-4 font-semibold">商品名稱(規格)</th><th class="whitespace-nowrap px-4 py-4 font-semibold">價格(原/特/折)</th><th class="px-4 py-4 font-semibold">優惠細節</th><th class="px-4 py-4 font-semibold">適合對象</th><th class="whitespace-nowrap px-4 py-4 text-center font-semibold">專業評級標籤</th>
+                </tr>
+              </thead>
+              <tbody id="tableBody" class="divide-y divide-white/8 text-sm"></tbody>
+            </table>
+          </div>
+          <div id="paginationBar" class="mt-4 hidden">
+            <div class="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+              <div class="text-sm text-slate-300">
+                <span id="pageInfo" class="font-semibold text-white">第 1 / 1 頁</span>
+                <span class="ml-2 text-slate-500">每頁 25 筆</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button id="prevPageBtn" class="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-slate-200 transition hover:border-[#00ff7f]/40 hover:text-white disabled:cursor-not-allowed disabled:opacity-40" type="button">上一頁</button>
+                <button id="nextPageBtn" class="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-slate-200 transition hover:border-[#00ff7f]/40 hover:text-white disabled:cursor-not-allowed disabled:opacity-40" type="button">下一頁</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="grid gap-6">
+          <div class="danger-border glass rounded-[2rem] p-6">
+            <div class="flex items-center gap-3"><div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#ff4d4d]/10 text-2xl text-[#ff4d4d]">⚠</div><div><h2 class="display text-2xl font-black text-white">今日避雷針</h2><p class="mt-1 text-sm text-slate-400">專抓堆料失衡、核心規格短板明顯，以及價格帶沒有對齊同級對手的商品。</p></div></div>
+            <div id="avoidBox" class="mt-5 rounded-2xl border border-[#ff4d4d]/20 bg-[#ff4d4d]/6 p-5"></div>
+          </div>
+        </section>
+
+      </div>
+    </section>
+
+    <footer class="mt-6 pb-8 text-center text-xs text-slate-500">3C 風格快照 · 單檔 HTML / Tailwind / JS</footer>
+  </main>
+
+  <script id="snapshotData" type="application/json">
+[{"id":"DYAX07-A900JVAJQ","title":"vivo 【B+福利品】vivo V17 (8G/128G) 6.38 吋","spec":"【B+福利品】vivo V17 (8G/128G) 6.38 吋","price":1800,"originalPrice":9990,"image":"https://cs-a.ecimg.tw/items/DYAX07A900JVAJQ/000001_1775025050.jpg","url":"https://24h.pchome.com.tw/prod/DYAX07-A900JVAJQ","query":"手機","discount":82},{"id":"DYAX08-A900HS5EC","title":"vivo X80 5G 6.78吋(12GB/256GB)","spec":"【福利品】vivo X80 5G 6.78吋(12GB/256GB)","price":5490,"originalPrice":27990,"image":"https://cs-a.ecimg.tw/items/DYAX08A900HS5EC/000001_1725420855.jpg","url":"https://24h.pchome.com.tw/prod/DYAX08-A900HS5EC","query":"手機","discount":80.4},{"id":"DHAM97-A900JREFW","title":"【福利品】Microsoft Surface Book 2 13.5吋 (i7/16G/1TB) WiFi版 纖薄平板電腦鍵盤組","spec":"【福利品】Microsoft Surface Book 2 纖薄平板電腦","price":18880,"originalPrice":94888,"image":"https://cs-a.ecimg.tw/items/DHAM97A900JREFW/000001_1771930433.jpg","url":"https://24h.pchome.com.tw/prod/DHAM97-A900JREFW","query":"筆電","discount":80.1},{"id":"DYAX1O-A900JK8AL","title":"Samsung 三星 【B+級福利品】Galaxy Tab S2 LTE版 (3G+32G) 平板電腦 / T719c 白_螢幕烙印","spec":"Samsung 三星【B+級福利品】Galaxy Tab S2 LTE版 (3G+32G) 平板電腦 / T719c 白","price":2800,"originalPrice":13390,"image":"https://cs-a.ecimg.tw/items/DYAX1OA900JK8AL/000001_1765962006.jpg","url":"https://24h.pchome.com.tw/prod/DYAX1O-A900JK8AL","query":"平板","discount":79.1},{"id":"DYAX08-A900JO141","title":"vivo 【A+級福利品】vivo X90 PRO (12G/256G)","spec":"【A+級福利品】vivo X90 PRO (12G/256GB) L2","price":7600,"originalPrice":34888,"image":"https://cs-a.ecimg.tw/items/DYAX08A900JO141/000001_1769067073.jpg","url":"https://24h.pchome.com.tw/prod/DYAX08-A900JO141","query":"手機","discount":78.2},{"id":"DYAO16-A900HPO95","title":"TOTOLINK M5 Magsafe PD20W 超薄金屬質感 無線磁吸 快充 行動電源-5000mAh","spec":"TOTOLINK M5 5000mAh 超薄磁吸無線快充行動電源","price":450,"originalPrice":1990,"image":"https://cs-a.ecimg.tw/items/DYAO16A900HPO95/000001_1726654510.jpg","url":"https://24h.pchome.com.tw/prod/DYAO16-A900HPO95","query":"行動電源","discount":77.4},{"id":"DMBL0L-A900JISI1","title":"ECOVACS 科沃斯 DEEBOT X2 COMBO 全能一站式清潔掃拖機器人(雙機一體/雙向集塵/集塵熱洗烘/最薄旗艦/邊角清潔)","spec":"【ECOVACS 科沃斯】DEEBOT X2 COMBO 一站式清潔中心掃拖機器人/手持吸塵器","price":15999,"originalPrice":64988,"image":"https://cs-a.ecimg.tw/items/DMBL0LA900JISI1/000007_1764923173.jpg","url":"https://24h.pchome.com.tw/prod/DMBL0L-A900JISI1","query":"掃拖機器人","discount":75.4},{"id":"DGAD1C-A900ITUCS","title":"YT-Q07 2.5K高畫質雙螢幕相機 7200萬像素 拍照 錄影 相簿 升級支援256G 16倍數位變焦 自拍神器","spec":"YT-Q07 2.5K高畫質雙螢幕相機 32GB","price":990,"originalPrice":3999,"image":"https://cs-a.ecimg.tw/items/DGAD1CA900ITUCS/000001_1747374790.jpg","url":"https://24h.pchome.com.tw/prod/DGAD1C-A900ITUCS","query":"數位相機","discount":75.2},{"id":"DYAX2D-A900G9BF7","title":"台灣品牌 SuperPad 艾爾登之劍 10.1吋 AI智能平板電腦 聯發科八核心CPU 8G/64G VoLTE新語音","spec":"10.1吋 艾爾登之劍 4G Lte平板電腦 (8G/64G)","price":2486,"originalPrice":9999,"image":"https://cs-a.ecimg.tw/items/DYAX2DA900G9BF7/000001_1719907036.jpg","url":"https://24h.pchome.com.tw/prod/DYAX2D-A900G9BF7","query":"平板","discount":75.1},{"id":"DHAY15-A900J83SQ","title":"Microsoft 微軟 Surface Pro 5 12.3吋 (i5/8G/256G) WiFi版 平板電腦(贈超值原廠鍵盤配件禮)","spec":"【福利品】Microsoft Surface Pro 5 平板電腦","price":8990,"originalPrice":35888,"image":"https://cs-a.ecimg.tw/items/DHAY15A900J83SQ/000001_1757494929.jpg","url":"https://24h.pchome.com.tw/prod/DHAY15-A900J83SQ","query":"筆電","discount":74.9},{"id":"DCANAI-A9006PUZ8","title":"KINYO USB光學滑鼠 KM-501","spec":"【KINYO】USB光學滑鼠KM501","price":99,"originalPrice":350,"image":"https://cs-a.ecimg.tw/items/DCANAIA9006PUZ8/000001_1667460695.jpg","url":"https://24h.pchome.com.tw/prod/DCANAI-A9006PUZ8","query":"滑鼠","discount":71.7},{"id":"DRAN08-A900IUU4L","title":"TP-Link 【3入組】Deco BE22 Wi-Fi 7 BE3600 雙頻 雙1G埠 真Mesh 路由器 wifi分享器 全屋網狀路由器","spec":"TP-Link WiFi 7 BE3600 雙頻 高CP 真Mesh 無線路由器 分享器(支援AI筆電/透天厝/Deco BE22 三入組)","price":5699,"originalPrice":19999,"image":"https://cs-a.ecimg.tw/items/DRAN08A900IUU4L/000001_1770778058.jpg","url":"https://24h.pchome.com.tw/prod/DRAN08-A900IUU4L","query":"路由器","discount":71.5},{"id":"DGAD1C-A900HQ04F","title":"YT-LK03復古造型雙鏡頭兒童相機 1080P錄影高畫質 4800萬像素 數位變焦 錄影/照相 可愛邊框 計時自拍","spec":"YT-LK03復古造型雙鏡頭兒童相機","price":863,"originalPrice":2999,"image":"https://cs-a.ecimg.tw/items/DGAD1CA900HQ04F/000001_1723176071.jpg","url":"https://24h.pchome.com.tw/prod/DGAD1C-A900HQ04F","query":"數位相機","discount":71.2},{"id":"DYAM1Q-A900B8D1Q","title":"IS愛思 福利品  幻想無雙 Plus 10.1吋 4G Lte平板電腦 八核心 4G/64G 安卓8.0","spec":"福利品 IS愛思 10.1吋 幻想無雙 Plus 八核平板(4G/64G)","price":2214,"originalPrice":6990,"image":"https://cs-a.ecimg.tw/items/DYAM1QA900B8D1Q/000001_1658132323.jpg","url":"https://24h.pchome.com.tw/prod/DYAM1Q-A900B8D1Q","query":"平板","discount":68.3},{"id":"DMABMH-A900FCHG3","title":"Xiaomi 小米  米家 桌面移動風扇 桌面風扇 小風扇 桌扇 ","spec":"小米 米家 桌面移動風扇(迷你無線風扇 桌上型風扇)","price":539,"originalPrice":1680,"image":"https://cs-a.ecimg.tw/items/DMABMHA900FCHG3/000001_1659330931.jpg","url":"https://24h.pchome.com.tw/prod/DMABMH-A900FCHG3","query":"電風扇","discount":67.9},{"id":"DYAO47-A900J0ZBN","title":"WEPHONE iCute 自帶線+帶支架 直插式 口袋行動電源 5000mAh / 3.7V (18.5Wh)","spec":"【Wephone】iCute隨身行動電源","price":319,"originalPrice":990,"image":"https://cs-a.ecimg.tw/items/DYAO47A900J0ZBN/000001_1757297933.jpg","url":"https://24h.pchome.com.tw/prod/DYAO47-A900J0ZBN","query":"行動電源","discount":67.8},{"id":"DRAFEM-A900F9GES","title":"Mercusys 水星 MR80X Wi-Fi 6 AX3000 雙頻 全Gigabit埠 路由器 wifi分享器 無線路由器 無線分享器","spec":"Mercusys水星網路 MR80X AX3000 Gigabit 雙頻 WiFi 6 無線網路路由器(Wi-Fi 6 分享器)","price":1099,"originalPrice":3399,"image":"https://cs-a.ecimg.tw/items/DRAFEMA900F9GES/000001_1774858658.jpg","url":"https://24h.pchome.com.tw/prod/DRAFEM-A900F9GES","query":"路由器","discount":67.7},{"id":"DGADLR-A900JUKUJ","title":"RICOH 理光 GR IV Monochrome 數位黑白相機 128G套組 (GRIV GR4,公司貨)","spec":"RICOH GR IV Monochrome 數位黑白相機 128G套組(GRIV GR4,公司貨)","price":1299,"originalPrice":3999,"image":"https://cs-a.ecimg.tw/items/DGADLRA900JUKUJ/000001_1774419396.jpg","url":"https://24h.pchome.com.tw/prod/DGADLR-A900JUKUJ","query":"數位相機","discount":67.5},{"id":"DMBL0L-A900J0KF3","title":"ECOVACS 科沃斯 DEEBOT N50 強清潔全能掃拖機器人(20000Pa/雙恆貼邊/全能基站)","spec":"【ECOVACS 科沃斯】DEEBOT N50 強清潔全能掃拖機器人(20000Pa/雙恆貼邊/全能基站)","price":13999,"originalPrice":42999,"image":"https://cs-a.ecimg.tw/items/DMBL0LA900J0KF3/000007_1760949993.jpg","url":"https://24h.pchome.com.tw/prod/DMBL0L-A900J0KF3","query":"掃拖機器人","discount":67.4},{"id":"DMBL1C-A900JA04J","title":"Roborock 石頭科技 Qrevo Curv 2 Flow 搖滾巨星 掃拖機器人(滾筒拖地/20000Pa/自動洗烘)","spec":"Roborock 石頭科技 掃地機器人Qrevo Curv2 Flow","price":19999,"originalPrice":59999,"image":"https://cs-a.ecimg.tw/items/DMBL1CA900JA04J/000001_1775008335.jpg","url":"https://24h.pchome.com.tw/prod/DMBL1C-A900JA04J","query":"掃拖機器人","discount":66.7},{"id":"DYAO44-A900IFX0T","title":"aibo AW100 無線充Watch/耳機/手機+自帶C+L雙線(可拆式)+數顯電量10000mAh PD快充行動電源 (Wh標示可上飛機)","spec":"aibo AW100 無線磁吸+PD+自帶雙線 數顯行動電源10000mAh","price":899,"originalPrice":2680,"image":"https://cs-a.ecimg.tw/items/DYAO44A900IFX0T/000001_1750598405.jpg","url":"https://24h.pchome.com.tw/prod/DYAO44-A900IFX0T","query":"行動電源","discount":66.5},{"id":"DRAN08-A900H8532","title":"TP-Link  【3入組】Deco BE65 Wi-Fi 7 BE11000 三頻 全2.5G 真Mesh 路由器 wifi分享器 全屋網狀路由器","spec":"TP-Link Deco BE65 Wi-Fi 7 BE11000 三頻 2.5G 真Mesh無線網路網狀路由器(Wi-Fi 7分享器/支援VPN)(3入)","price":16999,"originalPrice":49999,"image":"https://cs-a.ecimg.tw/items/DRAN08A900H8532/000001_1770360113.jpg","url":"https://24h.pchome.com.tw/prod/DRAN08-A900H8532","query":"路由器","discount":66},{"id":"DYAJC7-A900JCHUS","title":"Apple 蘋果 【A++福利品】Watch Series 6 40mm LTE A2375 鋁金屬 智慧手錶","spec":"【福利品】Apple Watch Series 6 40mm GPS+行動網路 A2375 鋁金屬","price":5580,"originalPrice":15900,"image":"https://cs-a.ecimg.tw/items/DYAJC7A900JCHUS/000001_1760509305.jpg","url":"https://24h.pchome.com.tw/prod/DYAJC7-A900JCHUS","query":"Apple Watch","discount":64.9},{"id":"DPAE9G-A900JB6AW","title":"NEBULA D2426 可樂罐雷射投影機 Capsule 3 Laser GTV","spec":"NEBULA D2426 可樂罐雷射投影機 Capsule 3 Laser GTV","price":12990,"originalPrice":35000,"image":"https://cs-a.ecimg.tw/items/DPAE9GA900JB6AW/000007_1759469058.jpg","url":"https://24h.pchome.com.tw/prod/DPAE9G-A900JB6AW","query":"投影機","discount":62.9},{"id":"DSABRZ-A900I2R06","title":"REAICE 15.6型IPS超薄可攜式外接螢幕(Switch外接螢幕/Type-C/可攜式螢幕/攜帶式電腦螢幕/Type C/HDMI)","spec":"【REAICE】15.6型IPS超薄可攜式外接螢幕(Switch外接螢幕/Type-C/可攜式螢幕/攜帶式電腦螢幕)","price":2599,"originalPrice":6988,"image":"https://cs-a.ecimg.tw/items/DSABRZA900I2R06/000001_1765772316.jpg","url":"https://24h.pchome.com.tw/prod/DSABRZ-A900I2R06","query":"顯示器","discount":62.8},{"id":"DRAGCN-1900IR5M5","title":"Synology 群暉 DiskStation DS1825+ (8Bay/AMD/8GB) NAS 網路儲存伺服器","spec":"[搭HAT3310 PLUS 16TB*2] Synology 群暉科技 DiskStation DS1825+ (8Bay/AMD/8GB) NAS 網路儲存伺服器","price":30088,"originalPrice":80000,"image":"https://cs-a.ecimg.tw/items/DRAGCN1900IR5M5/000001_1747290873.jpg","url":"https://24h.pchome.com.tw/prod/DRAGCN-1900IR5M5","query":"NAS","discount":62.4},{"id":"DYAJC7-A900FZ5WY","title":"Apple 蘋果 Watch Series 6 GPS 40mm 智慧型手錶 (贈市值1480配件禮)","spec":"【福利品】Apple Watch Series 6 GPS 40mm 智慧型手錶","price":4980,"originalPrice":12900,"image":"https://cs-a.ecimg.tw/items/DYAJC7A900FZ5WY/000001_1761561416.jpg","url":"https://24h.pchome.com.tw/prod/DYAJC7-A900FZ5WY","query":"Apple Watch","discount":61.4},{"id":"DPAFEK-A900JDRUR","title":"PHILIPS 飛利浦 TAT2206 TWS無線藍牙耳機-白","spec":"Philips 飛利浦 TAT2206 TWS真無線藍牙耳機-白","price":1042,"originalPrice":2690,"image":"https://cs-a.ecimg.tw/items/DPAFEKA900JDRUR/000001_1761620304.jpg","url":"https://24h.pchome.com.tw/prod/DPAFEK-A900JDRUR","query":"藍牙耳機","discount":61.3},{"id":"DMAB30-A900IM2U7","title":"6吋USB充電DC行動電扇(AB-6620)","spec":"Anbao 安寶 6吋USB充電DC行動電扇(AB-6620)","price":504,"originalPrice":1280,"image":"https://cs-a.ecimg.tw/items/DMAB30A900IM2U7/000001_1745299949.jpg","url":"https://24h.pchome.com.tw/prod/DMAB30-A900IM2U7","query":"電風扇","discount":60.6},{"id":"DCAIAM-A900FC0P8","title":"HP 惠普 DHE-6002S Soundbar RGB藍牙多媒體長型喇叭 揚聲器 音箱 音響","spec":"HP 惠普 DHE-6002S Soundbar RGB藍牙多媒體長型喇叭 揚聲器 音箱 音響","price":1299,"originalPrice":3280,"image":"https://cs-a.ecimg.tw/items/DCAIAMA900FC0P8/000001_1690185028.jpg","url":"https://24h.pchome.com.tw/prod/DCAIAM-A900FC0P8","query":"喇叭","discount":60.4},{"id":"DPADQL-A900ITQCV","title":"PROTON 普騰 55吋 4K QLED Google認證TV 2025 Android 14.0 聯網液晶顯示器 PGQ-U55BN6","spec":"PROTON 普騰55型 4K QLED Google認證TV 2025 Android 14.0 聯網液晶顯示器 PGQ-U55BN6","price":9999,"originalPrice":24900,"image":"https://cs-a.ecimg.tw/items/DPADQLA900ITQCV/000007_1747329778.jpg","url":"https://24h.pchome.com.tw/prod/DPADQL-A900ITQCV","query":"電視","discount":59.8},{"id":"DDBKCQ-A900I7A4A","title":"《經典Pro3》熱銷經典 AirPro3 ￼無線藍芽耳機 觸控彈窗 運動耳機 適用蘋果/安卓/小米","spec":"《經典Pro3》熱銷經典 AirPro3 ￼無線藍芽耳機 觸控彈窗 運動耳機 適用蘋果/安卓/小米","price":450,"originalPrice":999,"image":"https://cs-a.ecimg.tw/items/DDBKCQA900I7A4A/000001_1734962171.jpg","url":"https://24h.pchome.com.tw/prod/DDBKCQ-A900I7A4A","query":"藍牙耳機","discount":55},{"id":"DCAHSD-A900JL2GD","title":"LEXMA 雷馬 LK7000B 無線跨平台藍芽靜音鍵盤 四色","spec":"LEXMA LK7000B 無線跨平台藍芽靜音鍵盤 四色","price":499,"originalPrice":1099,"image":"https://cs-a.ecimg.tw/items/DCAHSDA900JL2GD/000001_1772606663.jpg","url":"https://24h.pchome.com.tw/prod/DCAHSD-A900JL2GD","query":"鍵盤","discount":54.6},{"id":"DYAJC7-A900J4N27","title":"Apple 蘋果 【福利品】Apple Watch Series 7 GPS 45mm WIFI (32GB/鋁金屬錶殼+運動型錶帶)","spec":"【福利品】Apple Watch Series 7 GPS 45mm WIFI (32GB/鋁金屬錶殼+運動型錶帶) L1","price":5900,"originalPrice":12900,"image":"https://cs-a.ecimg.tw/items/DYAJC7A900J4N27/000001_1755144675.jpg","url":"https://24h.pchome.com.tw/prod/DYAJC7-A900J4N27","query":"Apple Watch","discount":54.3},{"id":"DCAHGY-A900A60H0","title":"i-Rocks 艾芮克 無線2.4GHz技術irocks K81R 2.4GHz 無線鍵盤","spec":"irocks K81R 2.4GHz 無線鍵盤","price":849,"originalPrice":1790,"image":"https://cs-a.ecimg.tw/items/DCAHGYA900A60H0/000001_1774256142.jpg","url":"https://24h.pchome.com.tw/prod/DCAHGY-A900A60H0","query":"鍵盤","discount":52.6},{"id":"DMAB6T-A900DYW3Y","title":"AIRMATE 艾美特 14吋遙控立地電扇 AS35PC10R","spec":"【AIRMATE艾美特】14吋 遙控 立地電扇 AS35PC10R","price":959,"originalPrice":1980,"image":"https://cs-a.ecimg.tw/items/DMAB6TA900DYW3Y/000001_1760321981.jpg","url":"https://24h.pchome.com.tw/prod/DMAB6T-A900DYW3Y","query":"電風扇","discount":51.6},{"id":"DPADEW-1900JVKC3","title":"Samsung 三星 83型 OLED 4K 144Hz APPLE認證 Vision AI智慧顯示器 含華碩智慧眼鏡+三星3.1聲道無線劇院聲霸 83S90F","spec":"Samsung三星83型 OLED 4K 144Hz APPLE認證 Vision AI智慧顯示器 83S90F+三星聲霸","price":6492,"originalPrice":13160,"image":"https://cs-a.ecimg.tw/items/DPADEW1900JVKC3/000007_1775238238.jpg","url":"https://24h.pchome.com.tw/prod/DPADEW-1900JVKC3","query":"顯示器","discount":50.7},{"id":"DSABSL-A900JONE0","title":"Samsung 三星 S32FG502EC 平面電競顯示器(32型/2K/180Hz/1ms/HDMI)","spec":"SAMSUNG S32FG502EC 電競螢幕(32型/2K/180Hz/1ms/HDMI)","price":6492,"originalPrice":13160,"image":"https://cs-a.ecimg.tw/items/DSABSLA900JONE0/000001_1769589055.jpg","url":"https://24h.pchome.com.tw/prod/DSABSL-A900JONE0","query":"顯示器","discount":50.7},{"id":"DRAG04-A900DZSLE","title":"QNAP 威聯通   TS-233 2Bay NAS 網路儲存伺服器(不含硬碟)","spec":"QNAP 威聯通 TS-233 2Bay NAS 網路儲存伺服器(不含硬碟)","price":24888,"originalPrice":50000,"image":"https://cs-a.ecimg.tw/items/DRAG04A900DZSLE/000001_1653560368.jpg","url":"https://24h.pchome.com.tw/prod/DRAG04-A900DZSLE","query":"NAS","discount":50.2},{"id":"DSAR5F-A900IOFOB","title":"Logitech G 羅技 G502 LIGHTSPEED 高效能無線電競滑鼠","spec":"羅技G G502 LIGHTSPEED 高效能無線電競滑鼠","price":2490,"originalPrice":4990,"image":"https://cs-a.ecimg.tw/items/DSAR5FA900IOFOB/000007_1745814151.jpg","url":"https://24h.pchome.com.tw/prod/DSAR5F-A900IOFOB","query":"滑鼠","discount":50.1},{"id":"DPAE9I-A900JAWXD","title":"日本品牌IS愛思 星詠 150吋大螢幕投影Airplay/Miracast無線/有線同屏220度WIFI智慧微型投影機 贈遙控器","spec":"日本品牌 IS愛思 星詠 4K 150吋安卓投影機","price":1499,"originalPrice":2999,"image":"https://cs-a.ecimg.tw/items/DPAE9IA900JAWXD/000007_1759307326.jpg","url":"https://24h.pchome.com.tw/prod/DPAE9I-A900JAWXD","query":"投影機","discount":50},{"id":"DCAINM-A900B4TXO","title":"DIKE  DSM223 輕巧圓弧2.0喇叭 USB供電 可搭配充電器行動電源筆電/桌機","spec":"DIKE DSM223BK 輕巧圓弧2.0喇叭USB供電","price":151,"originalPrice":299,"image":"https://cs-a.ecimg.tw/items/DCAINMA900B4TXO/000001_1698742178.jpg","url":"https://24h.pchome.com.tw/prod/DCAINM-A900B4TXO","query":"喇叭","discount":49.5},{"id":"DCADJ5-A900FDO3B","title":"Mass 6合1 MacBook Air/Pro 擴充集線器 4K高清Type-C快充轉接頭(筆電必備/87W快充/多功能Hub/旅行辦公)","spec":"Mass macbook 2022 Air/Pro 6合1 擴充Hub集線器  usb Type-C4K轉接頭","price":668,"originalPrice":1299,"image":"https://cs-a.ecimg.tw/items/DCADJ5A900FDO3B/000001_1702518312.jpg","url":"https://24h.pchome.com.tw/prod/DCADJ5-A900FDO3B","query":"筆電","discount":48.6},{"id":"DCAI0B-A900HAFRI","title":"KINYO USB木質立體擴大喇叭 US-177","spec":"【KINYO】USB木質立體擴大喇叭 US-177","price":299,"originalPrice":580,"image":"https://cs-a.ecimg.tw/items/DCAI0BA900HAFRI/000001_1709793405.jpg","url":"https://24h.pchome.com.tw/prod/DCAI0B-A900HAFRI","query":"喇叭","discount":48.4},{"id":"DCBF01-A900BJOSO","title":"RAZER 雷蛇 Orochi V2 八岐大蛇靈刃 V2 無線滑鼠","spec":"Razer Orochi V2 八岐大蛇靈刃 V2","price":1088,"originalPrice":2090,"image":"https://cs-a.ecimg.tw/items/DCBF01A900BJOSO/000001_1762272156.jpg","url":"https://24h.pchome.com.tw/prod/DCBF01-A900BJOSO","query":"滑鼠","discount":47.9},{"id":"DPADO5-A900JV8KR","title":"TOSHIBA 東芝 REGZA 43型4K Google TV液晶顯示器 43C350NT","spec":"【TOSHIBA 東芝】REGZA 43型4K Google TV液晶顯示器 43C350NT","price":8888,"originalPrice":16900,"image":"https://cs-a.ecimg.tw/items/DPADO5A900JV8KR/000007_1774981362.jpg","url":"https://24h.pchome.com.tw/prod/DPADO5-A900JV8KR","query":"電視","discount":47.4},{"id":"DPADYE-1900J85KC","title":"LG 樂金 75型 UHD 91 系列 4K AI物聯網智慧顯示器 (75UT9150PTA)++2.2聲道全音域環繞聲霸","spec":"LG 樂金 75型 UHD 91 系列 4K AI物聯網智慧顯示器 (75UT9150PTA)+劇院聲霸","price":16900,"originalPrice":31900,"image":"https://cs-a.ecimg.tw/items/DPADYE1900J85KC/000007_1761188538.jpg","url":"https://24h.pchome.com.tw/prod/DPADYE-1900J85KC","query":"電視","discount":47},{"id":"DCAYWO-A900HKAN6","title":"Turtle Beach Stealth 600 GEN 3 無線多平台電競耳機","spec":"Turtle Beach® Stealth™ 600 GEN 3 無線多平台電競耳機","price":3190,"originalPrice":5990,"image":"https://cs-a.ecimg.tw/items/DCAYWOA900HKAN6/000001_1765504208.jpg","url":"https://24h.pchome.com.tw/prod/DCAYWO-A900HKAN6","query":"藍牙耳機","discount":46.7},{"id":"DPAE9I-A900JV1WH","title":"日本品牌 IS愛思 星詠 無線投影機 150吋大螢幕投影/Airplay/Miracast/WIFI/220度旋轉微型投影機","spec":"日本品牌 IS愛思 星詠 4K 150吋投影機","price":1299,"originalPrice":2399,"image":"https://cs-a.ecimg.tw/items/DPAE9IA900JV1WH/000007_1774860118.jpg","url":"https://24h.pchome.com.tw/prod/DPAE9I-A900JV1WH","query":"投影機","discount":45.9},{"id":"DCAHGY-A900GTACC","title":"i-Rocks 艾芮克 irocks K83BR-跨平台三模鋁合金 矮軸 機械鍵盤","spec":"irocks K83BR-跨平台三模鋁合金機械鍵盤","price":1999,"originalPrice":3690,"image":"https://cs-a.ecimg.tw/items/DCAHGYA900GTACC/000001_1699425627.jpg","url":"https://24h.pchome.com.tw/prod/DCAHGY-A900GTACC","query":"鍵盤","discount":45.8},{"id":"DRAGCN-1900JGYEK","title":"Synology 群暉 DiskStation DS925+ (4Bay/AMD/4GB) NAS 網路儲存伺服器","spec":"[搭HAT3300 PLUS 4TB*4] Synology群暉 DiskStation DS925+ (4Bay/AMD/4GB) NAS 網路儲存伺服器","price":44488,"originalPrice":80000,"image":"https://cs-a.ecimg.tw/items/DRAGCN1900JGYEK/000001_1763692802.jpg","url":"https://24h.pchome.com.tw/prod/DRAGCN-1900JGYEK","query":"NAS","discount":44.4},{"id":"DRAHCM-A900GK2KB","title":"sp 廣穎  P34A60 256GB NVMe Gen3x4 PCIe SSD 固態硬碟(256GBP34A60M28)","spec":"SP廣穎 P34A60 256GB NVMe Gen3x4 PCIe SSD 固態硬碟(SP256GBP34A60M28)","price":1739,"originalPrice":2909,"image":"https://cs-a.ecimg.tw/items/DRAHCMA900GK2KB/000001_1692167603.jpg","url":"https://24h.pchome.com.tw/prod/DRAHCM-A900GK2KB","query":"SSD","discount":40.2},{"id":"DRAAAH-A900JTU8N","title":"Kingston 金士頓 512GB USB3.2 Gen2 Type A/C 雙介面行動固態硬碟 (SPSD/512GB)","spec":"金士頓 Kingston 512GB USB3.2 Gen2 雙介面行動固態硬碟 (SPSD/512GB)","price":2799,"originalPrice":4599,"image":"https://cs-a.ecimg.tw/items/DRAAAHA900JTU8N/000007_1773824928.jpg","url":"https://24h.pchome.com.tw/prod/DRAAAH-A900JTU8N","query":"行動固態硬碟","discount":39.1},{"id":"DGCB7C-A900IAWDR","title":"Nikon 尼康 Z8 KIT 附 Z 24-120mm F4 S 旅遊鏡組 (公司貨) 全片幅微單眼相機","spec":"NIKON Z8 KIT 附 Z 24-120mm F4 S (公司貨) 全片幅微單眼相機","price":122956,"originalPrice":199580,"image":"https://cs-a.ecimg.tw/items/DGCB7CA900IAWDR/000007_1737706309.jpg","url":"https://24h.pchome.com.tw/prod/DGCB7C-A900IAWDR","query":"微單眼","discount":38.4},{"id":"DRAHCM-A900GKH60","title":"sp 廣穎  A55 128GB 3D NAND 2.5吋固態硬碟(128GBSS3A55S25)","spec":"SP廣穎 A55 128GB 3D NAND 2.5吋固態硬碟(SP128GBSS3A55S25)","price":949,"originalPrice":1499,"image":"https://cs-a.ecimg.tw/items/DRAHCMA900GKH60/000001_1692166398.jpg","url":"https://24h.pchome.com.tw/prod/DRAHCM-A900GKH60","query":"SSD","discount":36.7},{"id":"DGCB7G-A900IFPDD","title":"Nikon 尼康 Z6 III KIT 附 Z 24-70mm F4 S 變焦鏡組 (公司貨) 全片幅微單眼相機 Z6M3 Z63","spec":"NIKON Z6 III / Z63 KIT 附 Z 24-70mm F4 S (公司貨) 全片幅微單眼相機","price":87724,"originalPrice":135880,"image":"https://cs-a.ecimg.tw/items/DGCB7GA900IFPDD/000007_1741599502.jpg","url":"https://24h.pchome.com.tw/prod/DGCB7G-A900IFPDD","query":"微單眼","discount":35.4},{"id":"DGCB7G-A900IAWC0","title":"Nikon 尼康 Z8 BODY 單機身 (公司貨) 全片幅無反微單眼相機","spec":"NIKON Z8 BODY 單機身 (公司貨) 全片幅微單眼相機","price":96960,"originalPrice":148900,"image":"https://cs-a.ecimg.tw/items/DGCB7GA900IAWC0/000007_1737705910.jpg","url":"https://24h.pchome.com.tw/prod/DGCB7G-A900IAWC0","query":"微單眼","discount":34.9},{"id":"DRAHCM-A900GK2MT","title":"sp 廣穎  P34A60 512GB NVMe Gen3x4 PCIe SSD 固態硬碟(512GBP34A60M28)","spec":"SP廣穎 P34A60 512GB NVMe Gen3x4 PCIe SSD 固態硬碟(SP512GBP34A60M28)","price":2819,"originalPrice":4259,"image":"https://cs-a.ecimg.tw/items/DRAHCMA900GK2MT/000001_1692167552.jpg","url":"https://24h.pchome.com.tw/prod/DRAHCM-A900GK2MT","query":"SSD","discount":33.8},{"id":"DRAAAH-A900GKLD8","title":"Kingston 金士頓   XS1000 2TB 行動固態硬碟 (SXS1000/2000G)","spec":"金士頓 Kingston XS1000 2TB 行動固態硬碟 (SXS1000/2000G)","price":8650,"originalPrice":12999,"image":"https://cs-a.ecimg.tw/items/DRAAAHA900GKLD8/000001_1762099924.jpg","url":"https://24h.pchome.com.tw/prod/DRAAAH-A900GKLD8","query":"行動固態硬碟","discount":33.5},{"id":"DXAO6X-A900GL43W","title":"GARMIN  VENU 3S GPS 智慧腕錶","spec":"GARMIN VENU 3S GPS 智慧腕錶","price":9990,"originalPrice":14990,"image":"https://cs-a.ecimg.tw/items/DXAO6XA900GL43W/000007_1692342730.jpg","url":"https://24h.pchome.com.tw/prod/DXAO6X-A900GL43W","query":"智慧手錶","discount":33.4},{"id":"DXAO6X-A900GL43M","title":"GARMIN  VENU 3 GPS 智慧腕錶","spec":"GARMIN VENU 3 GPS 智慧腕錶","price":9990,"originalPrice":14990,"image":"https://cs-a.ecimg.tw/items/DXAO6XA900GL43M/000007_1692342787.jpg","url":"https://24h.pchome.com.tw/prod/DXAO6X-A900GL43M","query":"智慧手錶","discount":33.4},{"id":"DRAAAH-A900JTU8Q","title":"Kingston 金士頓 1TB USB3.2 Gen2 Type A/C 雙介面行動固態硬碟 (SPSD/1TB)","spec":"金士頓 Kingston 1TB USB3.2 Gen2 雙介面行動固態硬碟 (SPSD/1TB)","price":5490,"originalPrice":7999,"image":"https://cs-a.ecimg.tw/items/DRAAAHA900JTU8Q/000001_1773825001.jpg","url":"https://24h.pchome.com.tw/prod/DRAAAH-A900JTU8Q","query":"行動固態硬碟","discount":31.4},{"id":"DCBR1L-A900GR2O3","title":"Pubu Pubook SE 7.8吋電子閱讀器開放式系統 (附贈皮套)","spec":"Pubu Pubook SE 7.8吋電子閱讀器｜開放式系統(附原廠保護套組)","price":6207,"originalPrice":8490,"image":"https://cs-a.ecimg.tw/items/DCBR1LA900GR2O3/000001_1730027958.png","url":"https://24h.pchome.com.tw/prod/DCBR1L-A900GR2O3","query":"閱讀器","discount":26.9},{"id":"DYAIC6-A900J0HPU","title":"Samsung 三星 Galaxy Watch8 SM-L335F 44mm (LTE) 不支援 IOS 系統","spec":"SAMSUNG Galaxy Watch8 SM-L335F 44mm (LTE)","price":10990,"originalPrice":14990,"image":"https://cs-a.ecimg.tw/items/DYAIC6A900J0HPU/000001_1761879012.jpg","url":"https://24h.pchome.com.tw/prod/DYAIC6-A900J0HPU","query":"智慧手錶","discount":26.7},{"id":"DCBR1L-A900ITUYL","title":"Pubu Pubook 2 7.8吋彩色閱讀器","spec":"Pubook 2 7.8吋彩色閱讀器","price":13480,"originalPrice":15980,"image":"https://cs-a.ecimg.tw/items/DCBR1LA900ITUYL/000007_1747381852.jpg","url":"https://24h.pchome.com.tw/prod/DCBR1L-A900ITUYL","query":"閱讀器","discount":15.6},{"id":"DGBJRG-1900JT4R8","title":"Nintendo 任天堂 Switch 2 主機+Pokémon Pokopia 日版封面(支援中文)+螢幕保護貼","spec":"Switch 2 主機+Pokémon Pokopia 日版封面(支援中文)+螢幕保護貼","price":17580,"originalPrice":19280,"image":"https://cs-a.ecimg.tw/items/DGBJRG1900JT4R8/000001_1773294582.jpg","url":"https://24h.pchome.com.tw/prod/DGBJRG-1900JT4R8","query":"遊戲主機","discount":8.8},{"id":"DGBJKQ-A900BYBRO","title":"Nintendo 任天堂 暑假限定 買就送豪華配件包 Switch OLED 國際版主機(白色)+熱門遊戲多選一送原廠隨機特典x2","spec":"Switch OLED 款式主機(白色)+熱門遊戲多選一送任天堂飲料提袋","price":11380,"originalPrice":12470,"image":"https://cs-a.ecimg.tw/items/DGBJKQA900BYBRO/000001_1690172293.jpg","url":"https://24h.pchome.com.tw/prod/DGBJKQ-A900BYBRO","query":"遊戲主機","discount":8.7},{"id":"DGBJG9-1900J73UA","title":"PlayStation PS5 遊戲主機 (光碟版) - NBA 2K26 Bundle","spec":"PS5 遊戲主機 (光碟版) - NBA 2K26 Bundle","price":17980,"originalPrice":19570,"image":"https://cs-a.ecimg.tw/items/DGBJG91900J73UA/000001_1756884417.jpg","url":"https://24h.pchome.com.tw/prod/DGBJG9-1900J73UA","query":"遊戲主機","discount":8.1},{"id":"DCBR00-A900IH4Y7","title":"BOOX 文石 Go 6 吋電子閱讀器 - 黑色","spec":"文石 BOOX Go 6 吋電子閱讀器 - 黑色","price":4636,"originalPrice":4880,"image":"https://cs-a.ecimg.tw/items/DCBR00A900IH4Y7/000001_1742354239.png","url":"https://24h.pchome.com.tw/prod/DCBR00-A900IH4Y7","query":"閱讀器","discount":5}]
+
+  </script>
+
+  <script>
+    const snapshotDataNode = document.getElementById('snapshotData');
+    try {
+      window.__PCHOME_SNAPSHOT__ = snapshotDataNode ? JSON.parse(snapshotDataNode.textContent.trim()) : [];
+    } catch (error) {
+      window.__PCHOME_SNAPSHOT__ = [];
+    }
+
+    const extraProducts = [
+      { title:'Apple 蘋果 Apple Watch Ultra 3 GPS + LTE 49mm 黑色鈦金屬錶殼搭配黑色海洋錶帶', spec:'Apple Watch Ultra 3 GPS + LTE 49mm 黑色鈦 錶殼搭配黑色海洋錶帶', price:25555, originalPrice:26900, image:'https://cs-a.ecimg.tw/items/DYAJCLA900J836T/000001_1757924323.jpg', url:'https://24h.pchome.com.tw/prod/DYAJCL-A900J836T' }
+    ];
+    const inlineFallbackProducts = [
+      { title:'ACER 16吋i5-RTX4050電競筆電', spec:'i5 / RTX 4050 / 16G / 512G SSD / 16 吋', price:35900, originalPrice:39900, image:'https://img.pchome.com.tw/cs/items/DHAEJ3A900JJPYK/000007_1765516721.jpg', url:'https://24h.pchome.com.tw/prod/DHAEJ3-A900JJPYK', category:'computer', rating:'strong', label:'強烈推薦', note:'遊戲筆電主力機，效能及價格平衡感不錯。', audience:'遊戲、剪片、需要一台撐得住的主力筆電', volcano:'RTX 4050 + 16 吋，這種組合就是要拿來衝第一線。' },
+      { title:'三星65型 QLED顯示器', spec:'65 吋 / QLED / 大尺寸居家娛樂', price:26900, originalPrice:42900, image:'https://img.pchome.com.tw/cs/items/DPADEWA900JKR7W/000007_1766241398.jpg', url:'https://24h.pchome.com.tw/prod/DPADEW-A900JKR7W', category:'computer', rating:'strong', label:'強烈推薦', note:'折扣幅度大，適合直接抓來看家用大螢幕。', audience:'客廳大螢幕、追劇、家庭娛樂', volcano:'大尺寸 + 37% 折幅，視覺上很有感。' },
+      { title:'ACER 15.6吋AI效能筆電(R7/16G/1TB)', spec:'R7 / 16G / 1TB / 15.6 吋', price:20688, originalPrice:23900, image:'https://img.pchome.com.tw/cs/items/DHAEJ3A900J246J/000007_1753253941.jpg', url:'https://24h.pchome.com.tw/prod/DHAEJ3-A900J246J', category:'computer', rating:'consider', label:'值得考慮', note:'效能不差，容量也給得夠，但不是最殺的那種。', audience:'文書多工、入門創作、想要大容量的人', volcano:'1TB 是亮點，規格實用但價格還沒到爆炸甜。' },
+      { title:'Bose Ultra 開放式藍牙耳機', spec:'開放式聆聽 / 藍牙 / 通勤運動', price:7490, originalPrice:9500, image:'https://img.pchome.com.tw/cs/items/DGCT19A900H9IZF/000007_1710993960.jpg', url:'https://24h.pchome.com.tw/prod/DGCT19-A900H9IZF', category:'mobile', rating:'consider', label:'值得考慮', note:'品牌及體驗有優勢，但折扣不是一刀見血型。', audience:'通勤、運動、想要開放式耳機的人', volcano:'不錯聽，但不是今天最值得先掏錢的主角。' },
+      { title:'金士頓512GB 雙介面行動固態硬碟', spec:'512GB / 雙介面 / 行動 SSD', price:2899, originalPrice:4599, image:'https://img.pchome.com.tw/cs/items/DRAAAHA900JTU8N/000007_1773824928.jpg', url:'https://24h.pchome.com.tw/prod/DRAAAH-A900JTU8N', category:'computer', rating:'consider', label:'值得考慮', note:'儲存裝置折扣不錯，實用派可以直接看。', audience:'備份、外接資料、攝影及工作檔案搬運', volcano:'容量及價格都在合理區間，穩穩的加分項。' },
+      { title:'Glolux 流星錘3插3USB延長線1.5米 2入組', spec:'3 插 3 USB / 1.5 米 / 2 入組', price:599, originalPrice:1198, image:'https://img.pchome.com.tw/cs/items/DQBE2M1900JDO0N/000007_1772790077.jpg', url:'https://24h.pchome.com.tw/prod/DQBE2M-1900JDO0N', category:'accessory', rating:'avoid', label:'不推薦', note:'折扣很甜，但這種配件拿來當 3C 狙擊主角，焦點有點跑偏。', audience:'真的缺延長線的人', volcano:'不是壞，是不夠像主角；拿來湊單可以，拿來衝榜有點尷尬。' }
+    ];
+    function fallbackProducts() {
+      return ((window.__PCHOME_SNAPSHOT__ || inlineFallbackProducts)).concat(extraProducts);
+    }
+
+    const state = { products: [], filter: 'all', query: '', sort: 'discount-desc', source: 'fallback', page: 1, avoidRotationIndex: 0, avoidRotationItems: [], avoidRotationDate: '' };
+    const pageSize = 25;
+    const autoRefreshMs = 10 * 60 * 1000;
+    let autoRefreshTimer = null;
+    let avoidRotationTimer = null;
+    const money = v => new Intl.NumberFormat('zh-TW').format(v);
+    const percent = (price, originalPrice) => !originalPrice || originalPrice <= price ? 0 : Math.round((1 - price / originalPrice) * 1000) / 10;
+    const discountFoldText = (price, originalPrice) => {
+      if (!originalPrice || originalPrice <= price) return '';
+      const fold = Math.round((price / originalPrice) * 100) / 10;
+      return `${Number.isInteger(fold) ? fold.toFixed(0) : fold.toFixed(1)} 折`;
+    };
+    const dealDetailText = (price, originalPrice, meta = {}) => {
+      const saved = Math.max(0, (originalPrice || 0) - (price || 0));
+      const parts = [];
+      if (saved > 0) parts.push(`省 NT$ ${money(saved)}`);
+      const foldText = discountFoldText(price, originalPrice);
+      if (foldText) parts.push(foldText);
+      if (meta.rateDesc) parts.push(`折扣帶 ${meta.rateDesc}`);
+      return parts.length ? parts.join(' · ') : '優惠資訊待更新';
+    };
+    const buildNote = (title, category, discount) => {
+      if (/SSD|固態硬碟|NVMe|M\.2|行動固態硬碟/i.test(title)) return '儲存裝置折扣有感，容量和速度一起看。';
+      if (category === 'computer') return discount >= 20 ? '主力電腦向的降價，先看容量及效能。' : '電腦規格有感，適合比容量及用途。';
+      if (category === 'mobile') return discount >= 20 ? '手機及行動裝置折扣不錯，可先看規格。' : '行動裝置有降價，適合列入觀察。';
+      if (category === 'wearable') return discount >= 20 ? '穿戴裝置有甜價，先看續航及健康功能。' : '智慧手錶及手環有折扣，值得比一比。';
+      if (category === 'accessory') return '配件類有降價，但通常不是今天主角。';
+      return 'PChome 搜尋頁抓到的 3C 特價，實用性先行。';
+    };
+    const buildAudience = (title, category) => {
+      if (/SSD|固態硬碟|NVMe|M\.2|行動固態硬碟/i.test(title)) return '備份、外接、工作檔案搬運';
+      if (category === 'computer') return '電腦周邊、主機及儲存升級';
+      if (category === 'mobile') return '手機、平板、耳機及通勤裝置';
+      if (category === 'wearable') return '智慧手錶、健康監測及日常配戴';
+      if (category === 'accessory') return '真的缺配件、想補單的人';
+      return '家電、影音及其他 3C 需求';
+    };
+    const buildVolcano = (title, category, discount, rating) => {
+      if (/SSD|固態硬碟|NVMe|M\.2|行動固態硬碟/i.test(title)) return '容量、速度、價格一起看，這類很容易先下手。';
+      if (rating === 'strong') return '折扣及規格都站上風口，可以直接列入清單。';
+      if (category === 'wearable') return '穿戴裝置別只看外觀，功能及續航更重要。';
+      if (discount >= 20) return '折扣已經有感，剩下就是需求對不對。';
+      return '價格有降，但還是先看用途值不值得。';
+    };
+    const normalizeSpaces = text => (text || '').replace(/\s+/g, ' ').trim();
+    const getTaipeiDateKey = (date = new Date()) => {
+      const parts = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Taipei',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }).formatToParts(date);
+      const map = Object.fromEntries(parts.map(part => [part.type, part.value]));
+      return `${map.year}-${map.month}-${map.day}`;
+    };
+    const hashString = text => {
+      let hash = 2166136261;
+      for (let i = 0; i < text.length; i += 1) {
+        hash ^= text.charCodeAt(i);
+        hash = Math.imul(hash, 16777619);
+      }
+      return hash >>> 0;
+    };
+    const sortBySeed = (items, seed) => [...items].sort((a, b) => {
+      const aKey = hashString(`${seed}|${a.id || a.url || a.title || ''}`);
+      const bKey = hashString(`${seed}|${b.id || b.url || b.title || ''}`);
+      return aKey - bKey || a.title.localeCompare(b.title, 'zh-Hant') || a.price - b.price;
+    });
+    const extractAvoidSignals = item => {
+      const text = normalizeSpaces([item.title, item.spec].filter(Boolean).join(' '));
+      const signals = [];
+      const pushMatch = regex => {
+        const match = text.match(regex);
+        if (match && match[0] && !signals.includes(match[0])) signals.push(match[0]);
+      };
+      pushMatch(/(?:\d+(?:\.\d+)?)\s*(?:米|m)\b/i);
+      pushMatch(/\b\d+\s*插\b/i);
+      pushMatch(/\b\d+\s*USB\b/i);
+      pushMatch(/\bPD\s?\d+W\b|\bPD快充\b|\bQC\d?\b/i);
+      pushMatch(/\b\d+\s*W\b/i);
+      pushMatch(/\b\d+(?:\.\d+)?\s*吋\b/i);
+      pushMatch(/\b\d+\s*(?:G|GB|TB)\b/i);
+      pushMatch(/\b\d+\s*Hz\b/i);
+      pushMatch(/\b\d+\s*mm\b/i);
+      pushMatch(/(?:RTX\s?\d{3,4}(?:\s?Ti)?|GTX\s?\d{3,4}|Arc\s?\w+|i[3579]-?\d{3,5}[A-Z]*|R[3579]-?\d{3,5}[A-Z]*|Ryzen\s*\d\s*\d{3,4}[A-Z]*|M\d)/i);
+      pushMatch(/(?:LTE|GPS|5G|Wi-Fi\s?7|Wi-Fi\s?6|WiFi\s?7|WiFi\s?6)/i);
+      return signals.slice(0, 5);
+    };
+    const buildAvoidTease = item => {
+      const title = item.title || '';
+      const category = item.category || detectCategory(title);
+      if (category === 'accessory') return '折扣看起來很甜，但配件最怕只有數字好看，實際供電和安規卻沒有跟上。';
+      if (category === 'computer') return '這種商品最容易把折扣做漂亮，真正值不值得還是要回到核心規格有沒有升級。';
+      if (category === 'mobile') return '行動裝置不能只看降價，晶片、快充和儲存空間才是體感關鍵。';
+      if (category === 'wearable') return '穿戴裝置要看續航、感測器和通訊規格，外型再新也不代表實力到位。';
+      return '折扣不是問題，問題是核心規格沒有把同價位優勢拉開。';
+    };
+    const buildAvoidSpecReview = item => {
+      const title = item.title || '';
+      const spec = item.spec || '';
+      const category = item.category || detectCategory(title);
+      const text = normalizeSpaces([title, spec].filter(Boolean).join(' '));
+      const signals = extractAvoidSignals(item);
+      const signalText = signals.length ? signals.join('、') : '這組規格';
+      if (category === 'accessory') {
+        const line = signals.find(s => /米|m/i.test(s));
+        const plugs = signals.find(s => /插/i.test(s));
+        const usb = signals.find(s => /USB/i.test(s));
+        const power = signals.find(s => /W$/i.test(s) || /PD/i.test(s) || /QC/i.test(s));
+        const bits = [line, plugs, usb, power].filter(Boolean);
+        return `規格雷點：${bits.length ? `這筆先把 ${bits.join('、')} 標出來` : '這類配件的線長、插孔數及 USB 供電沒有特別突出'}，但如果沒有 PD/QC、額定功率或安規標示，實際上多半只是「能用」而不是「好用」。`;
+      }
+      if (category === 'computer') {
+        const bits = signals.filter(s => /RTX|GTX|Arc|i[3579]|R[3579]|Ryzen|M\d|G|GB|TB|Hz|吋/i.test(s)).slice(0, 4);
+        return `規格雷點：先看 CPU / GPU / 記憶體 / SSD / 螢幕更新率。${bits.length ? `這筆只看到 ${bits.join('、')}，` : ''}但如果同價位能換到更高一級的顯卡、1TB SSD 或更高刷新率，這筆就比較像標準配備，不算甜。`;
+      }
+      if (category === 'mobile') {
+        const bits = signals.filter(s => /GB|TB|W|吋|mm/i.test(s) || /LTE|GPS|5G|Wi-Fi/i.test(text)).slice(0, 4);
+        return `規格雷點：手機及平板通常要看 SoC / RAM+ROM / 充電功率 / 相機。${bits.length ? `這筆只看到 ${bits.join('、')}，` : ''}但沒有把快充、容量或主鏡頭拉高一階時，體感升級通常不夠明顯。`;
+      }
+      if (category === 'wearable') {
+        const bits = signals.filter(s => /mm|mAh|LTE|GPS|GB/i.test(s) || /手錶|手環|Watch/i.test(text)).slice(0, 4);
+        return `規格雷點：穿戴裝置要先看 GPS/LTE、續航、感測器及錶徑。${bits.length ? `這筆抓得到 ${bits.join('、')}，` : ''}但如果電池、健康監測或通訊規格沒有升級，通常只是換外型，不是換實力。`;
+      }
+      if (/NAS|路由器/i.test(text)) {
+        return `規格雷點：這類網通設備先看埠速、頻段、Mesh 架構及可擴充性。${signals.length ? `目前只看到 ${signalText}，` : ''}但若沒有更高埠速或更完整頻寬配置，價格優勢就不算明顯。`;
+      }
+      if (/相機|鏡頭|攝影/i.test(text)) {
+        return `規格雷點：相機要看感光元件、鏡頭焦段、錄影規格及防手震。${signals.length ? `目前只看到 ${signalText}，` : ''}但如果感光或鏡頭沒有升級，單靠像素數字很難代表實際畫質。`;
+      }
+      if (/閱讀器|電子書|電子紙/i.test(text)) {
+        return `規格雷點：閱讀器重點是螢幕尺寸、解析度、背光及系統。${signals.length ? `這筆呈現 ${signalText}，` : ''}但如果刷新、色彩或系統生態沒有加分，體驗不會有太大躍升。`;
+      }
+      return `規格雷點：核心規格目前只看到 ${signalText}，但沒有明顯拉開同價位差距；如果同級已能拿到更高容量、更快輸出或更完整功能，這筆就不算漂亮。`;
+    };
+    const accessoryPattern = /延長線|排插|插座|轉接頭|轉接器|USB\s*Hub|集線器|傳輸線|充電線|線材|保護殼|保護貼|滑鼠墊|支架|收納盒|手機架|車架|車充/i;
+    const wearablePattern = /Apple Watch|Watch Ultra|Watch SE|Galaxy Watch|Garmin|Fitbit|Amazfit|華米|HUAWEI WATCH|小米手錶|智慧手錶|智能手錶|智慧.*手環|健康.*手環|運動.*手環|手錶|穿戴裝置|Wearable/i;
+    const mobilePattern = /手機|iPhone|iPad|平板|AirPods|耳機|耳麥|耳塞|行動電源|充電|Pubook|電子書|閱讀器|電子紙|Xiaomi|小米|Samsung|三星|Galaxy|OPPO|vivo|Zenfone|Xperia|Redmi|Pixel|Nothing Phone|ROG Phone|藍牙/i;
+    const computerPattern = /筆電|桌機|顯示器|螢幕|SSD|固態硬碟|行動固態硬碟|NVMe|M\.2|硬碟|記憶體|顯卡|GPU|RTX|主機|NAS|路由器|鍵盤|滑鼠|喇叭/i;
+    const otherPattern = /相機|鏡頭|攝影|CarPlay|播放器|掃拖機器人|洗地機|機器人|咖啡機|電風扇|RO濾淨|飲水機|電視|投影|遊戲主機|Switch|PS5|Xbox/i;
+    const isAccessoryTitle = title => accessoryPattern.test(title || '');
+    const isWearableTitle = title => wearablePattern.test(title || '');
+    const isMobileTitle = title => mobilePattern.test(title || '');
+    const isComputerTitle = title => computerPattern.test(title || '');
+    const isOtherTitle = title => otherPattern.test(title || '');
+    const isPrimaryTitle = title => isComputerTitle(title) || isMobileTitle(title) || isWearableTitle(title);
+    const isThreeCRelatedTitle = title => !/魚油|保健|食品|衛生紙|雨衣|黃金|人體工學椅|家具|清潔|美容|化妝|母嬰|玩具|寵物|兒童|飾品|項鍊|手鍊|戒指|吊飾|服飾/i.test(title || '') && (isAccessoryTitle(title) || isWearableTitle(title) || isMobileTitle(title) || isComputerTitle(title) || isOtherTitle(title));
+    const detectCategory = title => isAccessoryTitle(title) ? 'accessory' : isWearableTitle(title) ? 'wearable' : isMobileTitle(title) ? 'mobile' : isComputerTitle(title) ? 'computer' : 'other';
+    const categoryWeight = item => item.priority ?? (item.category === 'computer' ? 0 : item.category === 'mobile' ? 1 : item.category === 'wearable' ? 2 : item.category === 'other' ? 3 : 4);
+    const detectRating = item => {
+      if (item.rating) return item.rating;
+      const title = item.title || '';
+      const discount = percent(item.price, item.originalPrice);
+      if (isAccessoryTitle(title)) return discount >= 35 ? 'consider' : 'avoid';
+      if (isPrimaryTitle(title)) {
+        const strongSignal = /RTX|QLED|AI效能|AirPods|iPhone|iPad|Apple Watch|Watch Ultra|Watch SE|Xiaomi|小米|Samsung|三星|Galaxy|OPPO|vivo|Zenfone|Xperia|Redmi|Pixel|Nothing Phone|ROG Phone|Pubook|Garmin|Fitbit|Amazfit|華米|手錶|耳機|耳麥|耳塞|SSD|固態硬碟|行動固態硬碟|NVMe|M\.2|筆電|顯示器|螢幕|手機|平板/i.test(title);
+        if (strongSignal && discount >= 8) return 'strong';
+        if (discount >= 20) return 'strong';
+        if (discount >= 10) return 'consider';
+        return discount > 0 ? 'consider' : 'avoid';
+      }
+      if (isOtherTitle(title)) return discount >= 18 ? 'consider' : discount > 0 ? 'consider' : 'avoid';
+      return discount >= 10 ? 'consider' : 'avoid';
+    };
+    const normalizeItem = item => {
+      const title = item.title || item.name || '';
+      const category = item.category || detectCategory(title);
+      const discount = item.discount ?? percent(item.price, item.originalPrice);
+      const rating = item.rating || detectRating({ ...item, title, category, discount });
+      return {
+        ...item,
+        title,
+        spec: item.spec || item.originProductName || item.query || 'PChome 24h購物',
+        category,
+        rating,
+        label:item.label || (rating === 'strong' ? '強烈推薦' : rating === 'consider' ? '值得考慮' : '不推薦'),
+        discount,
+        dealDetail:item.dealDetail || dealDetailText(item.price, item.originalPrice, { state:item.state, rateDesc:item.rate_desc }),
+        note:item.note || buildNote(title, category, discount),
+        audience:item.audience || buildAudience(title, category),
+        volcano:item.volcano || buildVolcano(title, category, discount, rating)
+      };
+    };
+
+    function formatTaipeiNow() {
+      const now = new Date();
+      return {
+        dateText: new Intl.DateTimeFormat('zh-TW', { timeZone:'Asia/Taipei', year:'numeric', month:'long', day:'numeric', weekday:'long' }).format(now),
+        timeText: new Intl.DateTimeFormat('zh-TW', { timeZone:'Asia/Taipei', hour:'2-digit', minute:'2-digit', hour12:false }).format(now)
+      };
+    }
+
+    function updateMeta(visibleCount, totalCount, totalPages) {
+      document.getElementById('visible-count').textContent = `目前顯示 ${visibleCount} / ${totalCount} 筆 · 第 ${state.page} / ${totalPages} 頁`;
+      document.getElementById('sourceMode').textContent = '資料模式：單檔內嵌快照';
+      document.getElementById('itemTotal').textContent = `資料 ${totalCount} 筆 / 每頁 ${pageSize} 筆`;
+    }
+
+    function updatePagination(totalPages) {
+      const bar = document.getElementById('paginationBar');
+      const pageInfo = document.getElementById('pageInfo');
+      const prevBtn = document.getElementById('prevPageBtn');
+      const nextBtn = document.getElementById('nextPageBtn');
+      const showBar = totalPages > 1;
+      bar.classList.toggle('hidden', !showBar);
+      if (!showBar) return;
+      pageInfo.textContent = `第 ${state.page} / ${totalPages} 頁`;
+      prevBtn.disabled = state.page <= 1;
+      nextBtn.disabled = state.page >= totalPages;
+    }
+
+    function updateFilterButtons() {
+      document.querySelectorAll('[data-filter]').forEach(btn => {
+        const active = btn.dataset.filter === state.filter;
+        btn.classList.toggle('active', active);
+        btn.setAttribute('aria-pressed', String(active));
+      });
+    }
+
+    function sortItems(items) {
+      const rank = { strong: 0, consider: 1, avoid: 2 };
+      const sorted = [...items];
+      switch (state.sort) {
+        case 'price-asc':
+          return sorted.sort((a, b) => a.price - b.price || b.discount - a.discount || rank[a.rating] - rank[b.rating] || a.title.localeCompare(b.title, 'zh-Hant'));
+        case 'price-desc':
+          return sorted.sort((a, b) => b.price - a.price || b.discount - a.discount || rank[a.rating] - rank[b.rating] || a.title.localeCompare(b.title, 'zh-Hant'));
+        case 'title-asc':
+          return sorted.sort((a, b) => a.title.localeCompare(b.title, 'zh-Hant'));
+        case 'discount-desc':
+        default:
+          return sorted.sort((a, b) => b.discount - a.discount || rank[a.rating] - rank[b.rating] || a.price - b.price || a.title.localeCompare(b.title, 'zh-Hant'));
+      }
+    }
+
+    function getVisibleItems() {
+      const q = state.query.trim().toLowerCase();
+      const filtered = state.products.filter(item => {
+      const filterMatch = state.filter === 'all' || (state.filter === 'strong' && item.rating === 'strong') || (state.filter === 'computer' && item.category === 'computer') || (state.filter === 'mobile' && item.category === 'mobile') || (state.filter === 'wearable' && item.category === 'wearable');
+        const queryMatch = !q || [item.title, item.spec, item.note, item.audience, item.volcano].join(' ').toLowerCase().includes(q);
+        return filterMatch && queryMatch;
+      });
+      return sortItems(filtered);
+    }
+
+    function renderView() {
+      const allItems = getVisibleItems();
+      const totalPages = Math.max(1, Math.ceil(allItems.length / pageSize));
+      state.page = Math.min(Math.max(state.page, 1), totalPages);
+      const start = (state.page - 1) * pageSize;
+      const pageItems = allItems.slice(start, start + pageSize);
+      renderTable(pageItems);
+      renderAvoid(allItems);
+      updateMeta(pageItems.length, allItems.length, totalPages);
+      updatePagination(totalPages);
+      updateFilterButtons();
+    }
+
+    function updateHeader() {
+      const { dateText, timeText } = formatTaipeiNow();
+      document.getElementById('today-date').textContent = '今日日期：' + dateText;
+      document.getElementById('update-time').textContent = '快照時間 ' + timeText + '（Asia/Taipei）';
+    }
+
+    function renderTable(items) {
+      const tbody = document.getElementById('tableBody');
+      if (!items.length) {
+        tbody.innerHTML = `<tr><td colspan="5" class="px-4 py-8 text-center text-sm text-slate-400">沒有符合條件的商品。</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = items.map((item, index) => `
+        <tr id="row-${index + 1}" data-row data-category="${item.category}" data-rating="${item.rating}" class="scroll-mt-28 bg-white/[0.01] text-[13px] leading-5 ${item.rating === 'avoid' ? 'opacity-60' : ''}">
+          <td class="px-3 py-2 align-middle">
+            <div class="flex min-w-0 gap-2.5">
+              <a href="${item.url}" target="_blank" rel="noreferrer" class="shrink-0">
+                <img src="${item.image}" alt="${item.title}" class="h-20 w-20 rounded-lg border border-white/10 object-cover" />
+              </a>
+              <div class="min-w-0">
+                <a href="${item.url}" target="_blank" rel="noreferrer" title="${item.title}" class="block clamp-2 break-words text-sm font-bold leading-5 text-white hover:text-[#00ff7f]">${item.title}</a>
+                <div class="mt-0.5 truncate text-[11px] leading-4 text-slate-400">${item.spec}</div>
+              </div>
+            </div>
+          </td>
+          <td class="px-3 py-2 align-top">
+            <div class="space-y-1">
+              <div class="whitespace-nowrap text-[12px] font-semibold tracking-tight tabular-nums">
+                <span class="text-slate-500 line-through">${money(item.originalPrice)}</span>
+                <span class="px-1.5 text-slate-500">/</span>
+                <span class="text-[#f5c542]">${money(item.price)}</span>
+                <span class="px-1.5 text-slate-500">/</span>
+                <span class="text-[#00ff7f]">-${item.discount}%</span>
+              </div>
+              <div class="clamp-2 whitespace-normal text-[11px] leading-4 text-slate-400" title="${item.note}">${item.note}</div>
+            </div>
+          </td>
+          <td class="px-3 py-2 align-top text-[11px] leading-5 text-slate-300">
+            <div class="clamp-2 whitespace-normal break-words" title="${item.dealDetail}">${item.dealDetail}</div>
+          </td>
+          <td class="px-3 py-2 align-top text-[11px] leading-5 text-slate-300">
+            <div class="clamp-2 whitespace-normal break-words" title="${item.audience}">${item.audience}</div>
+          </td>
+          <td class="w-[128px] px-3 py-2 align-middle text-center">
+            <span class="rating-badge inline-flex items-center justify-center rounded-full border px-3 py-1 text-[11px] font-bold ${item.rating === 'strong' ? 'badge-green' : item.rating === 'consider' ? 'badge-amber' : 'badge-red'}">${item.label}</span>
+          </td>
+        </tr>`).join('');
+    }
+
+    function renderAvoid(items) {
+      const box = document.getElementById('avoidBox');
+      const rotationSeed = getTaipeiDateKey();
+      const avoidItems = sortBySeed(items.filter(x => x.rating === 'avoid').slice(0, 3), rotationSeed);
+      if (avoidRotationTimer) {
+        clearInterval(avoidRotationTimer);
+        avoidRotationTimer = null;
+      }
+      if (!avoidItems.length) {
+        state.avoidRotationItems = [];
+        state.avoidRotationIndex = 0;
+        state.avoidRotationDate = rotationSeed;
+        box.innerHTML = `
+          <div class="flex flex-wrap items-center gap-2"><span class="badge-amber rounded-full px-3 py-1 text-xs font-bold">暫無明確避雷款</span><span class="text-sm font-semibold text-white">目前篩選條件沒有踩雷商品</span></div>
+          <p class="mt-3 text-sm leading-7 text-slate-300">這一輪沒有看到明顯規格短板或價格失衡的紅標項目，代表核心參數至少還在可接受範圍。</p>
+          <p class="mt-3 text-sm leading-7 text-slate-300">如果你要我更兇一點，我也可以把這區改成「今日最不值得看」或直接列出雷點清單。</p>`;
+        return;
+      }
+
+      state.avoidRotationItems = avoidItems;
+      if (state.avoidRotationDate !== rotationSeed) {
+        state.avoidRotationDate = rotationSeed;
+        state.avoidRotationIndex = 0;
+      }
+      state.avoidRotationIndex = state.avoidRotationIndex % avoidItems.length;
+
+      const paint = () => {
+        const active = state.avoidRotationItems[state.avoidRotationIndex];
+        if (!active) return;
+        const tease = buildAvoidTease(active);
+        const specReview = buildAvoidSpecReview(active);
+        const otherItems = state.avoidRotationItems.filter((_, idx) => idx !== state.avoidRotationIndex);
+        box.innerHTML = `
+          <div class="avoid-swap mt-4 rounded-2xl border border-[#ff4d4d]/18 bg-[#0d1118]/70 p-4">
+            <div class="flex items-start gap-3">
+              <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-[#ff4d4d]/18 bg-[#ff4d4d]/10 text-lg font-black text-[#ffb3b3]">${state.avoidRotationIndex + 1}</div>
+              <div class="min-w-0 flex-1">
+                <div class="truncate text-base font-bold text-white">${active.title}</div>
+                <div class="mt-1 text-xs leading-5 text-slate-400">${active.spec}</div>
+                <div class="mt-3 flex flex-wrap gap-2">
+                  <span class="badge-red rounded-full px-2.5 py-1 text-[11px] font-bold">不推薦</span>
+                  <span class="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-slate-300">NT$ ${money(active.price)}</span>
+                  <span class="rounded-full border border-[#00ff7f]/20 bg-[#00ff7f]/8 px-2.5 py-1 text-[11px] font-bold text-[#00ff7f]">-${active.discount}%</span>
+                </div>
+              </div>
+            </div>
+            <p class="mt-4 text-sm leading-7 text-slate-300">踩雷吐槽：${tease}</p>
+            <p class="mt-3 text-sm leading-7 text-slate-300">${specReview}</p>
+          </div>
+          <div class="mt-4 grid gap-2">
+            ${otherItems.map(item => {
+              const idx = state.avoidRotationItems.findIndex(origin => origin.id === item.id);
+              return `
+              <button type="button" data-avoid-dot="${idx}" class="group flex items-start gap-3 rounded-2xl border p-3 text-left transition ${idx === state.avoidRotationIndex ? 'border-[#ff4d4d]/40 bg-[#ff4d4d]/12 ring-1 ring-[#ff4d4d]/20' : 'border-white/10 bg-white/5 hover:border-[#ff4d4d]/25'}">
+                <div class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/5 text-[11px] font-black text-slate-300">${idx + 1}</div>
+                <div class="min-w-0 flex-1">
+                  <div class="truncate text-sm font-bold text-white">${item.title}</div>
+                  <div class="mt-1 truncate text-[11px] leading-4 text-slate-400">${item.spec}</div>
+                  <div class="mt-2 flex flex-wrap gap-2">
+                    <span class="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-slate-300">NT$ ${money(item.price)}</span>
+                    <span class="rounded-full border border-[#00ff7f]/20 bg-[#00ff7f]/8 px-2.5 py-1 text-[11px] font-bold text-[#00ff7f]">-${item.discount}%</span>
+                  </div>
+                </div>
+              </button>`;
+            }).join('')}
+          </div>
+          <div class="mt-3 text-xs text-slate-500">同日順序固定，隔天會重新洗牌。主卡每 4 秒輪轉 1 筆，下方顯示另外 2 筆，點任一筆可手動切換。</div>`;
+      };
+
+      paint();
+      if (state.avoidRotationItems.length > 1) {
+        avoidRotationTimer = setInterval(() => {
+          state.avoidRotationIndex = (state.avoidRotationIndex + 1) % state.avoidRotationItems.length;
+          paint();
+        }, 4000);
+      }
+    }
+
+    function applyFilter(filter) {
+      state.filter = filter;
+      state.page = 1;
+      renderView();
+    }
+
+    function reloadSnapshotScript() {
+      return Promise.resolve(true);
+    }
+
+    async function loadSnapshot() {
+      await reloadSnapshotScript();
+      state.products = fallbackProducts().map(normalizeItem);
+      state.source = 'embedded';
+      updateHeader();
+      renderView();
+    }
+
+    function initControls() {
+      document.getElementById('searchInput').addEventListener('input', event => {
+        state.query = event.target.value;
+        state.page = 1;
+        renderView();
+      });
+
+      document.getElementById('sortSelect').addEventListener('change', event => {
+        state.sort = event.target.value;
+        state.page = 1;
+        renderView();
+      });
+
+      document.querySelectorAll('[data-filter]').forEach(btn => btn.addEventListener('click', () => applyFilter(btn.dataset.filter)));
+      document.getElementById('reloadBtn').addEventListener('click', () => loadSnapshot());
+      document.getElementById('avoidBox').addEventListener('click', event => {
+        const btn = event.target.closest('[data-avoid-dot]');
+        if (!btn) return;
+        const nextIndex = Number(btn.dataset.avoidDot);
+        if (Number.isNaN(nextIndex)) return;
+        state.avoidRotationIndex = nextIndex;
+        renderAvoid(getVisibleItems());
+      });
+      document.getElementById('prevPageBtn').addEventListener('click', () => {
+        if (state.page > 1) {
+          state.page -= 1;
+          renderView();
+        }
+      });
+      document.getElementById('nextPageBtn').addEventListener('click', () => {
+        const totalPages = Math.max(1, Math.ceil(getVisibleItems().length / pageSize));
+        if (state.page < totalPages) {
+          state.page += 1;
+          renderView();
+        }
+      });
+    }
+
+    function startAutoRefresh() {
+      if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+      autoRefreshTimer = setInterval(() => loadSnapshot(), autoRefreshMs);
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      updateHeader();
+      initControls();
+      await loadSnapshot(false);
+      startAutoRefresh();
+    });
+  </script>
+</body>
+</html>
+
