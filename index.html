@@ -54,6 +54,8 @@
     .summary-item:hover,.hot-card:hover { transform:translateY(-2px); border-color:rgba(0,255,127,.22); }
     tbody tr[data-rating="avoid"] { opacity:.58; }
     tbody tr:hover td { background:rgba(255,255,255,.02); }
+    html[data-device="mobile"] .desktop-only { display:none !important; }
+    html[data-device="desktop"] .mobile-only { display:none !important; }
     .is-hidden { display:none !important; }
     .flash { animation:flash .9s ease-out 1; }
     .avoid-swap { animation:avoidSwap .35s ease; }
@@ -102,7 +104,7 @@
     </header>
 
     <section class="mt-6 grid gap-6 xl:grid-cols-[280px_1fr]">
-      <aside class="hidden glass rounded-[1.8rem] p-5 xl:block">
+      <aside class="desktop-only hidden glass rounded-[1.8rem] p-5 xl:block">
         <div class="flex items-center justify-between">
           <h2 class="display text-xl font-black text-white">分類導覽</h2>
           <span class="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-slate-400">PChome 24h</span>
@@ -156,7 +158,7 @@
             <button class="chip rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-200" data-filter="mobile">手機類</button>
             <button class="chip rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-200" data-filter="wearable">穿戴裝置</button>
           </div>
-          <div class="mt-5 hidden overflow-x-auto overflow-y-visible rounded-[1.4rem] border border-white/10 md:block">
+          <div class="desktop-only mt-5 hidden overflow-x-auto overflow-y-visible rounded-[1.4rem] border border-white/10 md:block">
             <table class="min-w-[980px] w-full table-fixed border-collapse text-left">
               <colgroup>
                 <col style="width:280px" />
@@ -173,7 +175,7 @@
               <tbody id="tableBody" class="divide-y divide-white/8 text-sm"></tbody>
             </table>
           </div>
-          <div id="mobileProductList" class="mt-5 grid gap-3 md:hidden"></div>
+          <div id="mobileProductList" class="mobile-only mt-5 grid gap-3 md:hidden"></div>
           <div id="paginationBar" class="mt-4 hidden">
             <div class="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
               <div class="text-sm text-slate-300">
@@ -229,9 +231,16 @@
       return ((window.__PCHOME_SNAPSHOT__ || inlineFallbackProducts)).concat(extraProducts);
     }
 
-    const isMobileViewport = () => window.matchMedia('(max-width: 767px)').matches;
+    const mobileMediaQuery = window.matchMedia('(max-width: 767px)');
+    const isMobileViewport = () => mobileMediaQuery.matches;
     const getPageSize = () => isMobileViewport() ? 8 : 25;
-    const state = { products: [], filter: isMobileViewport() ? 'strong' : 'all', query: '', sort: 'discount-desc', source: 'fallback', page: 1, avoidRotationIndex: 0, avoidRotationItems: [], avoidRotationDate: '' };
+    const syncDeviceMode = () => {
+      const mode = isMobileViewport() ? 'mobile' : 'desktop';
+      document.documentElement.dataset.device = mode;
+      return mode;
+    };
+    let currentDeviceMode = syncDeviceMode();
+    const state = { products: [], filter: 'all', query: '', sort: 'discount-desc', source: 'fallback', page: 1, avoidRotationIndex: 0, avoidRotationItems: [], avoidRotationDate: '' };
     const autoRefreshMs = 10 * 60 * 1000;
     let autoRefreshTimer = null;
     let avoidRotationTimer = null;
@@ -486,8 +495,15 @@
       state.page = Math.min(Math.max(state.page, 1), totalPages);
       const start = (state.page - 1) * pageSize;
       const pageItems = allItems.slice(start, start + pageSize);
-      renderTable(pageItems);
-      renderMobileList(pageItems);
+      if (isMobileViewport()) {
+        renderMobileList(pageItems);
+        const tbody = document.getElementById('tableBody');
+        if (tbody) tbody.innerHTML = '';
+      } else {
+        renderTable(pageItems);
+        const list = document.getElementById('mobileProductList');
+        if (list) list.innerHTML = '';
+      }
       renderAvoid(allItems);
       updateMeta(pageItems.length, allItems.length, totalPages);
       updatePagination(totalPages);
@@ -560,7 +576,7 @@
         <article data-row data-category="${item.category}" data-rating="${item.rating}" class="avoid-swap rounded-[1.4rem] border border-white/10 bg-white/[0.03] p-4 shadow-[0_10px_30px_rgba(0,0,0,.18)] ${item.rating === 'avoid' ? 'opacity-60' : ''}">
           <div class="flex items-start gap-3">
             <a href="${item.url}" target="_blank" rel="noreferrer" class="shrink-0">
-              <img src="${item.image}" alt="${item.title}" class="h-20 w-20 rounded-2xl border border-white/10 object-cover" />
+              <img src="${item.image}" alt="${item.title}" class="h-20 w-20 rounded-2xl border border-white/10 object-cover sm:h-20 sm:w-20" />
             </a>
             <div class="min-w-0 flex-1">
               <div class="flex items-start justify-between gap-2">
@@ -587,19 +603,25 @@
               <span class="text-[#00ff7f]">-${item.discount}%</span>
             </div>
             <p class="mt-2 text-[12px] leading-5 text-slate-300">${item.note}</p>
-            <p class="mt-1 clamp-2 text-[12px] leading-5 text-slate-400">${item.dealDetail}</p>
           </div>
 
-          <div class="mt-3 grid gap-2 sm:grid-cols-2">
-            <div class="rounded-2xl border border-white/10 bg-white/5 p-3">
-              <div class="text-[10px] uppercase tracking-[0.22em] text-slate-500">適合對象</div>
-              <div class="mt-1 clamp-2 text-xs leading-5 text-slate-300">${item.audience}</div>
+          <details class="mt-3 rounded-2xl border border-white/10 bg-white/5 p-3">
+            <summary class="cursor-pointer list-none text-xs font-semibold uppercase tracking-[0.18em] text-slate-300">更多細節</summary>
+            <div class="mt-3 grid gap-2">
+              <div class="rounded-xl border border-white/10 bg-black/20 p-3">
+                <div class="text-[10px] uppercase tracking-[0.22em] text-slate-500">優惠細節</div>
+                <div class="mt-1 text-xs leading-5 text-slate-300">${item.dealDetail}</div>
+              </div>
+              <div class="rounded-xl border border-white/10 bg-black/20 p-3">
+                <div class="text-[10px] uppercase tracking-[0.22em] text-slate-500">適合對象</div>
+                <div class="mt-1 text-xs leading-5 text-slate-300">${item.audience}</div>
+              </div>
+              <div class="rounded-xl border border-white/10 bg-black/20 p-3">
+                <div class="text-[10px] uppercase tracking-[0.22em] text-slate-500">判斷重點</div>
+                <div class="mt-1 text-xs leading-5 text-slate-300">${item.volcano}</div>
+              </div>
             </div>
-            <div class="rounded-2xl border border-white/10 bg-white/5 p-3">
-              <div class="text-[10px] uppercase tracking-[0.22em] text-slate-500">判斷重點</div>
-              <div class="mt-1 clamp-2 text-xs leading-5 text-slate-300">${item.volcano}</div>
-            </div>
-          </div>
+          </details>
 
           <div class="mt-4 flex items-center justify-between gap-3">
             <span class="text-[11px] text-slate-500">第 ${index + 1} 筆</span>
@@ -748,11 +770,26 @@
     }
 
     document.addEventListener('DOMContentLoaded', async () => {
+      syncDeviceMode();
       updateHeader();
       initControls();
       await loadSnapshot(false);
       startAutoRefresh();
     });
+
+    const handleViewportChange = () => {
+      const nextMode = syncDeviceMode();
+      if (nextMode !== currentDeviceMode) {
+        currentDeviceMode = nextMode;
+        state.page = 1;
+        renderView();
+      }
+    };
+    if (typeof mobileMediaQuery.addEventListener === 'function') {
+      mobileMediaQuery.addEventListener('change', handleViewportChange);
+    } else if (typeof mobileMediaQuery.addListener === 'function') {
+      mobileMediaQuery.addListener(handleViewportChange);
+    }
   </script>
 </body>
 </html>
