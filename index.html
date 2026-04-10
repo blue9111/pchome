@@ -441,7 +441,8 @@
     };
     const buildBootstrapState = () => {
       const cached = readLiveCache();
-      if (cached) {
+      const snapshotCount = SNAPSHOT_RAW_PRODUCTS.length;
+      if (cached && Array.isArray(cached.products) && cached.products.length >= snapshotCount) {
         return {
           source: 'cache',
           sourceLabel: 'PChome 24h 3C 上次成功結果',
@@ -609,7 +610,7 @@
       return parsePchomeCards(responseText, source);
     }
 
-    async function loadLiveProducts(runId) {
+    async function loadLiveProducts(runId, baselineCount = 0) {
       const settled = await Promise.allSettled(LIVE_CATEGORY_SOURCES.map(source => fetchLiveSource(source)));
       if (runId !== state.loadRunId) return;
 
@@ -625,8 +626,9 @@
         }
       }
 
-      if (!merged.length) {
-        state.syncStatus = 'live';
+      if (!merged.length || merged.length <= baselineCount) {
+        // Keep the committed snapshot when browser-side live fetch is smaller or less complete.
+        state.syncStatus = 'snapshot';
         updateHeader();
         renderView();
         return;
@@ -1048,12 +1050,12 @@
       const bootstrap = buildBootstrapState();
       state.source = bootstrap.source;
       state.sourceLabel = bootstrap.sourceLabel;
-      state.lastSyncAt = bootstrap.lastSyncAt;
+      state.lastSyncAt = bootstrap.lastSyncAt || new Date();
       state.page = 1;
       state.products = bootstrap.products;
       updateHeader();
       renderView();
-      void loadLiveProducts(runId);
+      void loadLiveProducts(runId, bootstrap.products.length);
     }
 
     function initControls() {
