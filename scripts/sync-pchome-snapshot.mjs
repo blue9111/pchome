@@ -31,6 +31,8 @@ const LIVE_CATEGORY_SOURCES = [
   { key: 'surveillance', url: 'https://24h.pchome.com.tw/region/DCAS', label: '監視器', category: 'computer', limit: 6 },
   { key: 'television', url: 'https://24h.pchome.com.tw/region/DPAD', label: '電視', category: 'computer', limit: 6 },
   { key: 'ssd', url: 'https://24h.pchome.com.tw/region/DRAH', label: 'SSD', category: 'computer', limit: 6 },
+  { key: 'ssd-kingston-nv3', url: 'https://24h.pchome.com.tw/search/?q=SNV3S%2F1000G', label: 'Kingston NV3 1TB', category: 'computer', limit: 8 },
+  { key: 'ssd-kingston', url: 'https://24h.pchome.com.tw/store/DRAH6Y', label: 'Kingston SSD', category: 'computer', limit: 6 },
   { key: 'memory', url: 'https://24h.pchome.com.tw/region/DRAC', label: '記憶體', category: 'computer', limit: 6 },
   { key: 'external-storage', url: 'https://24h.pchome.com.tw/region/DRAA', label: '行動固態硬碟', category: 'computer', limit: 6 },
   { key: 'nas', url: 'https://24h.pchome.com.tw/region/DRAG', label: 'NAS', category: 'computer', limit: 6 },
