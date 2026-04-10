@@ -8,6 +8,7 @@ const SNAPSHOT_JSON_PATH = path.join(ROOT, 'pchome-snapshot.json');
 const SNAPSHOT_JS_PATH = path.join(ROOT, 'pchome-snapshot.js');
 
 const LIVE_CATEGORY_SOURCES = [
+  { key: 'laptop-lenovo-screen', url: 'https://24h.pchome.com.tw/category/DHBF06C', label: 'Lenovo 依螢幕推薦', category: 'computer', limit: 12 },
   { key: 'mobile', url: 'https://24h.pchome.com.tw/region/DGAS', label: '一般手機', category: 'mobile', limit: 8 },
   { key: 'wearable', url: 'https://24h.pchome.com.tw/region/DYAI', label: '智慧穿戴', category: 'wearable', limit: 6 },
   { key: 'power-bank', url: 'https://24h.pchome.com.tw/region/DYAO', label: '行動電源', category: 'mobile', limit: 8 },
