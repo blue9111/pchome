@@ -248,6 +248,26 @@
       box-shadow: 0 0 0 3px rgba(0,255,127,.08);
     }
 
+    .token-input {
+      flex: 1 1 320px;
+      min-width: 220px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+      padding: .82rem 1rem;
+      outline: none;
+    }
+
+    .token-input::placeholder {
+      color: rgba(154, 167, 180, .86);
+    }
+
+    .token-input:focus {
+      border-color: rgba(0,255,127,.32);
+      box-shadow: 0 0 0 3px rgba(0,255,127,.08);
+    }
+
     .helper {
       margin-top: 12px;
       color: var(--muted);
@@ -458,8 +478,17 @@
           </div>
           <div class="helper">
             `prod` 來源會先抓商品頁，嘗試轉成可追蹤的搜尋來源。<br />
-            這頁在 GitHub Pages 可以預覽來源清單，但只有在本機 `source-manager-server` 開啟時才能寫回檔案。
+            本機開啟時會直接寫回 `pchome-sources.json`；GitHub Pages 上則會先排入 queue，再交給 GitHub Actions 寫回。
           </div>
+          <div class="status-row" style="margin-top: 14px;">
+            <div class="status" id="writeModeStatus"><span class="dot"></span><span>等待權杖</span></div>
+          </div>
+          <div class="actions" style="margin-top: 12px;">
+            <input id="githubTokenInput" class="token-input" type="password" autocomplete="off" spellcheck="false" placeholder="GitHub fine-grained PAT（Contents: write）" />
+            <button class="btn secondary" id="saveTokenBtn" type="button">儲存權杖</button>
+            <button class="btn ghost" id="clearTokenBtn" type="button">清除</button>
+          </div>
+          <div class="helper" id="githubTokenHint">GitHub Pages 模式需要一個 repo 專用權杖。權限只要 `Contents: write`，送出後會先排入 queue，再由 Actions 寫回。</div>
           <div id="message" class="message">等待你貼上批次連結。</div>
         </article>
 
@@ -499,6 +528,13 @@
   </main>
 
   <script>
+    const GITHUB_OWNER = 'blue9111';
+    const GITHUB_REPO = 'pchome';
+    const GITHUB_BRANCH = 'main';
+    const GITHUB_RAW_SOURCES_URL = 'https://raw.githubusercontent.com/blue9111/pchome/main/pchome-sources.json';
+    const GITHUB_API_BASE = 'https://api.github.com';
+    const GITHUB_QUEUE_DIR = 'source-import-queue';
+    const GITHUB_TOKEN_STORAGE_KEY = 'pchome.github.token';
     const API_SOURCES_URL = '/api/sources';
     const API_IMPORT_URL = '/api/sources/import';
     const FALLBACK_SOURCES_URL = './pchome-sources.json';
@@ -535,6 +571,95 @@
       return '';
     };
 
+    function safeStorageGet(key) {
+      try {
+        return localStorage.getItem(key) || '';
+      } catch {
+        return '';
+      }
+    }
+
+    function safeStorageSet(key, value) {
+      try {
+        localStorage.setItem(key, value);
+      } catch {
+        return;
+      }
+    }
+
+    function safeStorageRemove(key) {
+      try {
+        localStorage.removeItem(key);
+      } catch {
+        return;
+      }
+    }
+
+    function getStoredGithubToken() {
+      return safeStorageGet(GITHUB_TOKEN_STORAGE_KEY).trim();
+    }
+
+    function getGithubTokenInputValue() {
+      const input = $('githubTokenInput');
+      return input ? input.value.trim() : '';
+    }
+
+    function getActiveGithubToken() {
+      return getGithubTokenInputValue() || getStoredGithubToken();
+    }
+
+    function persistGithubToken(token) {
+      if (!token) return;
+      safeStorageSet(GITHUB_TOKEN_STORAGE_KEY, token);
+      const input = $('githubTokenInput');
+      if (input) input.value = token;
+    }
+
+    function clearGithubToken() {
+      safeStorageRemove(GITHUB_TOKEN_STORAGE_KEY);
+      const input = $('githubTokenInput');
+      if (input) input.value = '';
+    }
+
+    function encodeUtf8Base64(text) {
+      const bytes = new TextEncoder().encode(String(text || ''));
+      let binary = '';
+      for (const byte of bytes) {
+        binary += String.fromCharCode(byte);
+      }
+      return btoa(binary);
+    }
+
+    function makeQueueFileName() {
+      const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const nonceSource = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+        ? crypto.randomUUID()
+        : Math.random().toString(36).slice(2);
+      const nonce = nonceSource.replace(/[^a-zA-Z0-9]+/g, '').slice(0, 12) || 'queue';
+      return `${GITHUB_QUEUE_DIR}/${stamp}-${nonce}.json`;
+    }
+
+    function buildQueuePayload(text) {
+      const urls = String(text || '')
+        .split(/\r?\n/)
+        .map(line => line.trim())
+        .filter(Boolean);
+      return {
+        submittedAt: new Date().toISOString(),
+        source: 'source-manager.html',
+        pageUrl: window.location.href,
+        urlCount: urls.length,
+        text,
+        urls
+      };
+    }
+
+    function activeWriteMode() {
+      if (state.apiAvailable) return 'local';
+      if (getActiveGithubToken()) return 'github';
+      return 'readonly';
+    }
+
     function setMessage(text, mode = 'info') {
       const box = $('message');
       box.textContent = text;
@@ -544,19 +669,40 @@
     function setLoading(loading) {
       state.loading = loading;
       const submitBtn = $('submitBtn');
-      submitBtn.disabled = loading || !state.apiAvailable;
+      submitBtn.disabled = loading || (!state.apiAvailable && !getActiveGithubToken());
       submitBtn.textContent = loading ? '送出加入中…' : '送出加入';
     }
 
     function renderStatus() {
       const apiStatus = $('apiStatus');
+      const writeModeStatus = $('writeModeStatus');
       const sourceCount = $('sourceCount');
       const lastUpdated = $('lastUpdated');
-      apiStatus.className = `status ${state.apiAvailable ? 'ok' : 'bad'}`;
-      apiStatus.innerHTML = `<span class="dot"></span><span>${state.apiAvailable ? '本機 API 已連線' : '只讀預覽模式'}</span>`;
+      const submitBtn = $('submitBtn');
+      const tokenHint = $('githubTokenHint');
+      const mode = activeWriteMode();
+      const hasToken = Boolean(getActiveGithubToken());
+      const isWritable = mode !== 'readonly';
+
+      apiStatus.className = `status ${isWritable ? 'ok' : 'bad'}`;
+      apiStatus.innerHTML = `<span class="dot"></span><span>${mode === 'local' ? '本機 API 已連線' : mode === 'github' ? 'GitHub Pages 寫回已啟用' : '只讀預覽模式'}</span>`;
+
+      if (writeModeStatus) {
+        writeModeStatus.className = `status ${hasToken || state.apiAvailable ? 'ok' : 'bad'}`;
+        writeModeStatus.innerHTML = `<span class="dot"></span><span>${state.apiAvailable ? '本機直寫可用' : hasToken ? 'GitHub 權杖已就緒' : 'GitHub 權杖未設定'}</span>`;
+      }
+
+      if (tokenHint) {
+        tokenHint.textContent = state.apiAvailable
+          ? '目前會優先使用本機 API。若要讓 GitHub Pages 也能送出，請先儲存 fine-grained PAT，權限只要 `Contents: write`。'
+          : hasToken
+            ? '已啟用 GitHub Pages 寫回，送出後會先排入 queue，再由 GitHub Actions 寫回。'
+            : 'GitHub Pages 模式需要一個 repo 專用權杖。權限只要 `Contents: write`，送出後會先排入 queue，再由 Actions 寫回。';
+      }
+
       sourceCount.innerHTML = `<span class="dot"></span><span>${state.sources.length} sources</span>`;
-      lastUpdated.innerHTML = `<span class="dot"></span><span>${state.lastResult ? '已完成一次批次操作' : '等待匯入'}</span>`;
-      $('submitBtn').disabled = state.loading || !state.apiAvailable;
+      lastUpdated.innerHTML = `<span class="dot"></span><span>${state.lastResult?.queued ? 'GitHub 佇列已送出' : state.lastResult ? '已完成一次批次操作' : '等待匯入'}</span>`;
+      submitBtn.disabled = state.loading || (!state.apiAvailable && !getActiveGithubToken());
     }
 
     function renderSources() {
@@ -592,6 +738,25 @@
         summary.textContent = '送出後會在這裡顯示新增與略過結果。';
         list.innerHTML = '';
         meta.textContent = '尚未送出';
+        return;
+      }
+
+      if (result.queued) {
+        const queuedAt = result.submittedAt ? new Date(result.submittedAt) : new Date();
+        summary.textContent = `已送出 GitHub Actions 佇列，${result.urlCount || 0} 筆連結等待處理。`;
+        meta.textContent = `排入時間：${queuedAt.toLocaleString('zh-TW', { hour12: false })}`;
+        list.innerHTML = `
+          <div class="result-item">
+            <p class="title">GitHub 佇列已建立</p>
+            <div class="sub">Actions 會在背景處理這批來源，完成後會同步更新 pchome-sources.json、index.html、pchome-snapshot.*。</div>
+            <div class="badge-row">
+              <span class="badge added">queued</span>
+              <span class="badge">queue: ${escapeHtml(result.queuePath || '')}</span>
+              <span class="badge">links: ${escapeHtml(result.urlCount ?? 0)}</span>
+              ${result.commitSha ? `<span class="badge">commit: ${escapeHtml(result.commitSha.slice(0, 7))}</span>` : ''}
+            </div>
+          </div>
+        `;
         return;
       }
 
@@ -648,16 +813,29 @@
         setMessage('已連上本機來源 API，可以直接送出加入。', 'success');
       } catch (apiError) {
         try {
-          const response = await fetch(FALLBACK_SOURCES_URL, { cache: 'no-store' });
+          const response = await fetch(GITHUB_RAW_SOURCES_URL, { cache: 'no-store' });
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
           const payload = await response.json();
           state.sources = Array.isArray(payload) ? payload : Array.isArray(payload.sources) ? payload.sources : [];
           state.apiAvailable = false;
-          setMessage('目前是只讀預覽模式。請用本機 server 開啟這頁，才能寫回 `pchome-sources.json`。', 'warn');
-        } catch (fallbackError) {
-          state.sources = [];
-          state.apiAvailable = false;
-          setMessage(`載入來源清單失敗：${fallbackError.message || apiError.message}`, 'error');
+          setMessage(getActiveGithubToken()
+            ? '已啟用 GitHub Pages 寫回，可以直接送出加入。'
+            : '目前是 GitHub Pages 預覽模式。請先儲存 GitHub 權杖，才能寫回 `pchome-sources.json`。', getActiveGithubToken() ? 'success' : 'warn');
+        } catch (githubError) {
+          try {
+            const response = await fetch(FALLBACK_SOURCES_URL, { cache: 'no-store' });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const payload = await response.json();
+            state.sources = Array.isArray(payload) ? payload : Array.isArray(payload.sources) ? payload.sources : [];
+            state.apiAvailable = false;
+            setMessage(getActiveGithubToken()
+              ? 'GitHub 權杖已就緒，但目前顯示的是本機快照預覽。'
+              : '目前是只讀預覽模式。請先儲存 GitHub 權杖，才能寫回 `pchome-sources.json`。', getActiveGithubToken() ? 'success' : 'warn');
+          } catch (fallbackError) {
+            state.sources = [];
+            state.apiAvailable = false;
+            setMessage(`載入來源清單失敗：${fallbackError.message || githubError.message || apiError.message}`, 'error');
+          }
         }
       } finally {
         renderSources();
@@ -667,6 +845,45 @@
       }
     }
 
+    async function queueImportToGitHub(text) {
+      const token = getActiveGithubToken();
+      if (!token) {
+        throw new Error('請先儲存 GitHub 權杖。');
+      }
+
+      persistGithubToken(token);
+      const payload = buildQueuePayload(text);
+      const queuePath = makeQueueFileName();
+      const body = JSON.stringify({
+        message: `Queue PChome source import (${payload.urlCount} links)`,
+        content: encodeUtf8Base64(`${JSON.stringify(payload, null, 2)}\n`),
+        branch: GITHUB_BRANCH
+      });
+
+      const response = await fetch(`${GITHUB_API_BASE}/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${queuePath}`, {
+        method: 'PUT',
+        headers: {
+          Accept: 'application/vnd.github+json',
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'X-GitHub-Api-Version': '2022-11-28'
+        },
+        body
+      });
+
+      const payloadResponse = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payloadResponse.message || `HTTP ${response.status}`);
+      }
+
+      return {
+        queuePath,
+        payload,
+        commitSha: payloadResponse.commit?.sha || '',
+        htmlUrl: payloadResponse.content?.html_url || ''
+      };
+    }
+
     async function submitImport() {
       const input = $('urlInput');
       const text = input.value.trim();
@@ -674,38 +891,57 @@
         setMessage('請先貼上至少一個 PChome 連結。', 'warn');
         return;
       }
-      if (!state.apiAvailable) {
-        setMessage('目前不是本機 API 模式，無法寫回檔案。請改用 `node scripts/source-manager-server.mjs` 開啟這頁。', 'warn');
+
+      const token = getActiveGithubToken();
+      if (!state.apiAvailable && !token) {
+        setMessage('目前是 GitHub Pages 預覽模式，請先在下方儲存 GitHub 權杖，再按送出。', 'warn');
         return;
       }
 
       setLoading(true);
-      setMessage('分類與寫入中，請稍候…', 'info');
+      setMessage(state.apiAvailable ? '分類與寫入中，請稍候…' : '已排入 GitHub Actions 佇列，請稍候…', 'info');
       try {
-        const response = await fetch(API_IMPORT_URL, {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ text })
-        });
-        const payload = await response.json();
-        if (!response.ok) {
-          throw new Error(payload.error || `HTTP ${response.status}`);
+        if (state.apiAvailable) {
+          const response = await fetch(API_IMPORT_URL, {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ text })
+          });
+          const payload = await response.json();
+          if (!response.ok) {
+            throw new Error(payload.error || `HTTP ${response.status}`);
+          }
+
+          state.sources = Array.isArray(payload.sources) ? payload.sources : state.sources;
+          state.lastResult = payload;
+          renderSources();
+          renderResult(payload);
+          renderStatus();
+          input.value = '';
+          setMessage(`已新增 ${Array.isArray(payload.added) ? payload.added.length : 0} 筆來源，略過 ${Array.isArray(payload.skipped) ? payload.skipped.length : 0} 筆。`, 'success');
+          if (payload.sync?.ran) {
+            const syncMode = payload.sync.ok ? 'success' : 'warn';
+            const syncSummary = payload.sync.ok
+              ? `已同步快照 ${payload.sync.products ?? '最新'} 筆商品。`
+              : `同步快照失敗：${payload.sync.error || 'unknown error'}`;
+            setMessage(syncSummary, syncMode);
+          }
+          return;
         }
 
-        state.sources = Array.isArray(payload.sources) ? payload.sources : state.sources;
-        state.lastResult = payload;
-        renderSources();
-        renderResult(payload);
+        const queued = await queueImportToGitHub(text);
+        state.lastResult = {
+          queued: true,
+          submittedAt: queued.payload.submittedAt,
+          urlCount: queued.payload.urlCount,
+          queuePath: queued.queuePath,
+          commitSha: queued.commitSha,
+          htmlUrl: queued.htmlUrl
+        };
+        renderResult(state.lastResult);
         renderStatus();
         input.value = '';
-        setMessage(`已新增 ${Array.isArray(payload.added) ? payload.added.length : 0} 筆來源，略過 ${Array.isArray(payload.skipped) ? payload.skipped.length : 0} 筆。`, 'success');
-        if (payload.sync?.ran) {
-          const syncMode = payload.sync.ok ? 'success' : 'warn';
-          const syncSummary = payload.sync.ok
-            ? `已同步快照 ${payload.sync.products ?? '最新'} 筆商品。`
-            : `同步快照失敗：${payload.sync.error || 'unknown error'}`;
-          setMessage(syncSummary, syncMode);
-        }
+        setMessage(`已送出到 GitHub queue：${queued.queuePath}。Actions 會自動處理，完成後重新整理即可看到新資料。`, 'success');
       } catch (error) {
         setMessage(error.message || '寫入失敗', 'error');
       } finally {
@@ -718,9 +954,27 @@
       $('urlInput').value = '';
       setMessage('已清空批次連結輸入框。', 'info');
     });
+    $('saveTokenBtn').addEventListener('click', () => {
+      const token = getGithubTokenInputValue();
+      if (!token) {
+        setMessage('請先輸入 GitHub 權杖。', 'warn');
+        return;
+      }
+      persistGithubToken(token);
+      renderStatus();
+      setMessage('GitHub 權杖已儲存。', 'success');
+    });
+    $('clearTokenBtn').addEventListener('click', () => {
+      clearGithubToken();
+      renderStatus();
+      setMessage('GitHub 權杖已清除。', 'info');
+    });
+    $('githubTokenInput').addEventListener('input', () => renderStatus());
     $('reloadBtn').addEventListener('click', () => void loadSources());
 
     document.addEventListener('DOMContentLoaded', () => {
+      const tokenInput = $('githubTokenInput');
+      if (tokenInput) tokenInput.value = getStoredGithubToken();
       renderResult(null);
       renderStatus();
       void loadSources();
