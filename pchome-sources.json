@@ -1,0 +1,322 @@
+[
+  {
+    "key": "laptop-lenovo-screen",
+    "kind": "category",
+    "url": "https://24h.pchome.com.tw/category/DHBF06C",
+    "label": "Lenovo 依螢幕推薦",
+    "category": "computer",
+    "limit": 12
+  },
+  {
+    "key": "mobile",
+    "kind": "region",
+    "url": "https://24h.pchome.com.tw/region/DGAS",
+    "label": "一般手機",
+    "category": "mobile",
+    "limit": 8
+  },
+  {
+    "key": "wearable",
+    "kind": "region",
+    "url": "https://24h.pchome.com.tw/region/DYAI",
+    "label": "智慧穿戴",
+    "category": "wearable",
+    "limit": 6
+  },
+  {
+    "key": "power-bank",
+    "kind": "region",
+    "url": "https://24h.pchome.com.tw/region/DYAO",
+    "label": "行動電源",
+    "category": "mobile",
+    "limit": 8
+  },
+  {
+    "key": "apple-watch",
+    "kind": "category",
+    "url": "https://24h.pchome.com.tw/category/DYAJ75C",
+    "label": "Apple Watch",
+    "category": "wearable",
+    "limit": 6
+  },
+  {
+    "key": "computer-gaming",
+    "kind": "region",
+    "url": "https://24h.pchome.com.tw/region/DSAX",
+    "label": "電競專區",
+    "category": "computer",
+    "limit": 8
+  },
+  {
+    "key": "computer-accessory",
+    "kind": "region",
+    "url": "https://24h.pchome.com.tw/region/DCAG",
+    "label": "筆電周邊/配件",
+    "category": "computer",
+    "limit": 8
+  },
+  {
+    "key": "laptop-main",
+    "kind": "region",
+    "url": "https://24h.pchome.com.tw/region/DHAM",
+    "label": "筆電",
+    "category": "computer",
+    "limit": 6
+  },
+  {
+    "key": "laptop-picks",
+    "kind": "region",
+    "url": "https://24h.pchome.com.tw/region/DHAA",
+    "label": "筆記電腦",
+    "category": "computer",
+    "limit": 6
+  },
+  {
+    "key": "laptop-special",
+    "kind": "region",
+    "url": "https://24h.pchome.com.tw/region/DHAB",
+    "label": "特仕筆電",
+    "category": "computer",
+    "limit": 6
+  },
+  {
+    "key": "laptop-gaming",
+    "kind": "region",
+    "url": "https://24h.pchome.com.tw/region/DHAW",
+    "label": "電競筆電",
+    "category": "computer",
+    "limit": 6
+  },
+  {
+    "key": "laptop-ai",
+    "kind": "region",
+    "url": "https://24h.pchome.com.tw/region/DHAR",
+    "label": "RTX AI PC",
+    "category": "computer",
+    "limit": 6
+  },
+  {
+    "key": "laptop-acer",
+    "kind": "region",
+    "url": "https://24h.pchome.com.tw/region/DHAE",
+    "label": "ACER宏碁筆電",
+    "category": "computer",
+    "limit": 4
+  },
+  {
+    "key": "laptop-asus",
+    "kind": "region",
+    "url": "https://24h.pchome.com.tw/region/DHAF",
+    "label": "ASUS華碩筆電",
+    "category": "computer",
+    "limit": 4
+  },
+  {
+    "key": "laptop-hp",
+    "kind": "region",
+    "url": "https://24h.pchome.com.tw/region/DHAG",
+    "label": "HP惠普筆電",
+    "category": "computer",
+    "limit": 4
+  },
+  {
+    "key": "laptop-dell",
+    "kind": "region",
+    "url": "https://24h.pchome.com.tw/region/DHAI",
+    "label": "DELL戴爾筆電",
+    "category": "computer",
+    "limit": 4
+  },
+  {
+    "key": "laptop-surface",
+    "kind": "region",
+    "url": "https://24h.pchome.com.tw/region/DHAY",
+    "label": "Surface 筆電",
+    "category": "computer",
+    "limit": 4
+  },
+  {
+    "key": "laptop-hub",
+    "kind": "region",
+    "url": "https://24h.pchome.com.tw/region/DCAD",
+    "label": "筆電配件 / USB HUB",
+    "category": "computer",
+    "limit": 4
+  },
+  {
+    "key": "monitor",
+    "kind": "region",
+    "url": "https://24h.pchome.com.tw/region/DSAB",
+    "label": "顯示器",
+    "category": "computer",
+    "limit": 6
+  },
+  {
+    "key": "desktop-pc",
+    "kind": "region",
+    "url": "https://24h.pchome.com.tw/region/DSAU",
+    "label": "主機",
+    "category": "computer",
+    "limit": 6
+  },
+  {
+    "key": "surveillance",
+    "kind": "region",
+    "url": "https://24h.pchome.com.tw/region/DCAS",
+    "label": "監視器",
+    "category": "computer",
+    "limit": 6
+  },
+  {
+    "key": "television",
+    "kind": "region",
+    "url": "https://24h.pchome.com.tw/region/DPAD",
+    "label": "電視",
+    "category": "computer",
+    "limit": 6
+  },
+  {
+    "key": "ssd",
+    "kind": "region",
+    "url": "https://24h.pchome.com.tw/region/DRAH",
+    "label": "SSD",
+    "category": "computer",
+    "limit": 6
+  },
+  {
+    "key": "ssd-kingston-nv3",
+    "kind": "search",
+    "url": "https://24h.pchome.com.tw/search/?q=SNV3S%2F1000G",
+    "label": "Kingston NV3 1TB",
+    "category": "computer",
+    "limit": 8
+  },
+  {
+    "key": "ssd-kingston",
+    "kind": "store",
+    "url": "https://24h.pchome.com.tw/store/DRAH6Y",
+    "label": "Kingston SSD",
+    "category": "computer",
+    "limit": 6
+  },
+  {
+    "key": "memory",
+    "kind": "region",
+    "url": "https://24h.pchome.com.tw/region/DRAC",
+    "label": "記憶體",
+    "category": "computer",
+    "limit": 6
+  },
+  {
+    "key": "external-storage",
+    "kind": "region",
+    "url": "https://24h.pchome.com.tw/region/DRAA",
+    "label": "行動固態硬碟",
+    "category": "computer",
+    "limit": 6
+  },
+  {
+    "key": "nas",
+    "kind": "region",
+    "url": "https://24h.pchome.com.tw/region/DRAG",
+    "label": "NAS",
+    "category": "computer",
+    "limit": 6
+  },
+  {
+    "key": "internal-storage",
+    "kind": "region",
+    "url": "https://24h.pchome.com.tw/region/DRAB",
+    "label": "內接硬碟",
+    "category": "computer",
+    "limit": 6
+  },
+  {
+    "key": "computer-network",
+    "kind": "region",
+    "url": "https://24h.pchome.com.tw/region/DRAF",
+    "label": "網路",
+    "category": "computer",
+    "limit": 8
+  },
+  {
+    "key": "router-main",
+    "kind": "region",
+    "url": "https://24h.pchome.com.tw/region/DRAN",
+    "label": "路由器",
+    "category": "computer",
+    "limit": 6
+  },
+  {
+    "key": "router-tplink",
+    "kind": "store",
+    "url": "https://24h.pchome.com.tw/store/DRAFJB",
+    "label": "TP-Link 路由器",
+    "category": "computer",
+    "limit": 4
+  },
+  {
+    "key": "router-asus",
+    "kind": "store",
+    "url": "https://24h.pchome.com.tw/store/DRAFJ5",
+    "label": "ASUS 路由器",
+    "category": "computer",
+    "limit": 4
+  },
+  {
+    "key": "router-full",
+    "kind": "store",
+    "url": "https://24h.pchome.com.tw/store/DRAFJ8",
+    "label": "路由器全系列",
+    "category": "computer",
+    "limit": 4
+  },
+  {
+    "key": "router-mercusys",
+    "kind": "store",
+    "url": "https://24h.pchome.com.tw/store/DRAFEM",
+    "label": "Mercusys 路由器",
+    "category": "computer",
+    "limit": 4
+  },
+  {
+    "key": "router-gaming",
+    "kind": "store",
+    "url": "https://24h.pchome.com.tw/store/DRAFKW",
+    "label": "電競路由器",
+    "category": "computer",
+    "limit": 4
+  },
+  {
+    "key": "keyboard",
+    "kind": "region",
+    "url": "https://24h.pchome.com.tw/region/DCAH",
+    "label": "鍵盤",
+    "category": "computer",
+    "limit": 6
+  },
+  {
+    "key": "mouse",
+    "kind": "store",
+    "url": "https://24h.pchome.com.tw/store/DCANSS",
+    "label": "無線滑鼠",
+    "category": "computer",
+    "limit": 6
+  },
+  {
+    "key": "mouse-razer",
+    "kind": "store",
+    "url": "https://24h.pchome.com.tw/store/DCANXE",
+    "label": "Razer 滑鼠",
+    "category": "computer",
+    "limit": 6
+  },
+  {
+    "key": "bluetooth-headset",
+    "kind": "category",
+    "url": "https://24h.pchome.com.tw/category/DYAQ15C",
+    "label": "藍牙耳機",
+    "category": "accessory",
+    "limit": 8
+  }
+]
