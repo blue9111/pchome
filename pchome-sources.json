@@ -318,5 +318,21 @@
     "label": "藍牙耳機",
     "category": "accessory",
     "limit": 8
+  },
+  {
+    "key": "search-24-fhd-144hz-1ms-ips-acer-ek241y-p6",
+    "kind": "search",
+    "url": "https://24h.pchome.com.tw/search/?q=24%E5%9E%8B%2FFHD%2F144Hz%2F1ms%2FIPS",
+    "label": "ACER 宏碁 EK241Y P6 護眼螢幕",
+    "category": "computer",
+    "limit": 8
+  },
+  {
+    "key": "search-49-5k-165hz-1ms-va-type-c-32-9-aoc-ag493ucx2",
+    "kind": "search",
+    "url": "https://24h.pchome.com.tw/search/?q=49%E5%9E%8B%2F5K%2F165hz%2F1ms%2FVA%2FType%20C%2F32%3A9",
+    "label": "AOC AG493UCX2曲面電競螢幕",
+    "category": "computer",
+    "limit": 8
   }
 ]

@@ -1,9 +1,13 @@
 import { readFile } from 'node:fs/promises';
+import { execFile } from 'node:child_process';
 import { createServer } from 'node:http';
 import { extname, normalize, resolve, sep } from 'node:path';
+import { promisify } from 'node:util';
 import { loadSourceRegistry, importSourceUrls, fetchTextWithTimeout, ROOT } from './pchome-source-registry.mjs';
 
 const PORT = Number(process.env.PCHOME_SOURCE_PORT || 8787);
+const execFileAsync = promisify(execFile);
+const SYNC_SCRIPT_PATH = resolve(ROOT, 'scripts', 'sync-pchome-snapshot.mjs');
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -78,7 +82,29 @@ async function handleImport(req, res) {
   }
 
   const result = await importSourceUrls(text, { fetchText: fetchTextWithTimeout });
-  sendJson(res, 200, result);
+
+  let sync = { ran: false, ok: true };
+  if (Array.isArray(result.added) && result.added.length > 0) {
+    sync.ran = true;
+    try {
+      const { stdout } = await execFileAsync(process.execPath, [SYNC_SCRIPT_PATH], {
+        cwd: ROOT,
+        env: process.env,
+        maxBuffer: 10 * 1024 * 1024
+      });
+      const match = String(stdout || '').match(/Fetched\s+(\d+)\s+products\s+from\s+(\d+)\s+sources\./i);
+      if (match) {
+        sync.products = Number(match[1]);
+        sync.sources = Number(match[2]);
+      }
+    } catch (error) {
+      sync.ok = false;
+      sync.error = error?.message || 'Snapshot sync failed.';
+      console.error(`[error] snapshot sync failed after import: ${sync.error}`);
+    }
+  }
+
+  sendJson(res, 200, { ...result, sync });
 }
 
 async function handleRequest(req, res) {

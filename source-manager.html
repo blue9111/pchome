@@ -699,6 +699,13 @@
         renderStatus();
         input.value = '';
         setMessage(`已新增 ${Array.isArray(payload.added) ? payload.added.length : 0} 筆來源，略過 ${Array.isArray(payload.skipped) ? payload.skipped.length : 0} 筆。`, 'success');
+        if (payload.sync?.ran) {
+          const syncMode = payload.sync.ok ? 'success' : 'warn';
+          const syncSummary = payload.sync.ok
+            ? `已同步快照 ${payload.sync.products ?? '最新'} 筆商品。`
+            : `同步快照失敗：${payload.sync.error || 'unknown error'}`;
+          setMessage(syncSummary, syncMode);
+        }
       } catch (error) {
         setMessage(error.message || '寫入失敗', 'error');
       } finally {
