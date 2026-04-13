@@ -15,7 +15,6 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const INDEX_PATH = path.join(ROOT, 'index.html');
 const SNAPSHOT_JSON_PATH = path.join(ROOT, 'pchome-snapshot.json');
 const SNAPSHOT_JS_PATH = path.join(ROOT, 'pchome-snapshot.js');
-const ONSALE_API_URL = 'https://ecapi-cdn.pchome.com.tw/fsapi/cms/onsale';
 
 const parseMoneyText = text => {
   const normalized = String(text || '').replace(/[^\d]/g, '');
@@ -119,74 +118,6 @@ async function repairPlaceholderImages(items) {
   return items;
 }
 
-function parseJsonPayload(text) {
-  const raw = String(text || '').trim();
-  if (!raw) return null;
-  if (raw.startsWith('{') || raw.startsWith('[')) return JSON.parse(raw);
-
-  const markdownIndex = raw.indexOf('Markdown Content:');
-  const content = markdownIndex >= 0 ? raw.slice(markdownIndex + 'Markdown Content:'.length).trim() : raw;
-  const start = content.indexOf('{');
-  const end = content.lastIndexOf('}');
-  const candidate = start >= 0 && end >= start ? content.slice(start, end + 1) : content;
-  return JSON.parse(candidate.trim());
-}
-
-function mapOnsaleProduct(product, source) {
-  const title = normalizeSpaces(product?.name || '');
-  const promo = normalizeSpaces(product?.slogan || '');
-  const url = normalizeSpaces(product?.url || '');
-  const image = toAbsoluteUrl(product?.image || '');
-  const id = normalizeSpaces(product?.id || extractProductId(url));
-  const price = parseMoneyText(product?.price?.onsale);
-  const originalPrice = parseMoneyText(product?.price?.origin);
-  if (!id || !title || !url || !image || !price || !originalPrice || !isThreeCRelatedTitle(title)) return null;
-
-  const discount = originalPrice > price ? Math.round((1 - price / originalPrice) * 1000) / 10 : 0;
-  if (discount <= 0) return null;
-
-  return {
-    id,
-    title,
-    spec: promo || '限時瘋搶 3C',
-    price,
-    originalPrice,
-    image,
-    url,
-    category: detectCategoryFromText(`${title} ${promo}`) || source.category || 'computer',
-    query: '限時瘋搶 3C',
-    promo,
-    discount
-  };
-}
-
-async function fetchOnsaleSource(source) {
-  const limit = source.limit || 12;
-  const candidates = [ONSALE_API_URL, buildJinaUrl(ONSALE_API_URL)];
-  for (const candidate of candidates) {
-    try {
-      const responseText = await fetchTextWithTimeout(candidate, 20000);
-      const payload = parseJsonPayload(responseText);
-      const slots = Array.isArray(payload?.data) ? payload.data : [];
-      const items = [];
-      for (const slot of slots) {
-        const status = String(slot?.status || '').toLowerCase();
-        if (status !== 'now' && status !== 'ready') continue;
-        for (const product of slot.products || []) {
-          const item = mapOnsaleProduct(product, source);
-          if (!item) continue;
-          items.push(item);
-          if (items.length >= limit) return await repairPlaceholderImages(items);
-        }
-      }
-      if (items.length) return await repairPlaceholderImages(items);
-    } catch (error) {
-      console.warn(`[warn] ${source.key} via ${candidate === ONSALE_API_URL ? 'onsale-api' : 'jina'} failed: ${error.message}`);
-    }
-  }
-  return [];
-}
-
 function parsePchomeCards(markdown, source) {
   const lines = String(markdown || '').split(/\r?\n/);
   const items = [];
@@ -247,10 +178,6 @@ function parsePchomeCards(markdown, source) {
 }
 
 async function fetchLiveSource(source) {
-  if (source.kind === 'onsale') {
-    return await fetchOnsaleSource(source);
-  }
-
   const candidates = [buildJinaUrl(source.url), buildAllOriginsUrl(buildJinaUrl(source.url))];
   for (const candidate of candidates) {
     try {

@@ -445,7 +445,7 @@
         <div>
           <div class="eyebrow"><span class="dot"></span>Batch Source Import</div>
           <h1 class="title display">PChome 來源批次匯入</h1>
-          <p class="subtitle">把多個 PChome 24h 連結一次貼上，系統會自動判斷是 `category`、`region`、`store`、`search`、`onsale` 或 `prod`，再寫回 `pchome-sources.json`。`prod` 會自動轉成可追蹤的搜尋來源，讓核心來源清單保持乾淨。</p>
+          <p class="subtitle">把多個 PChome 24h 連結一次貼上，系統會自動判斷是 `category`、`region`、`store`、`search` 或 `prod`，再寫回 `pchome-sources.json`。`prod` 會自動轉成可追蹤的搜尋來源，讓核心來源清單保持乾淨。</p>
         </div>
         <div class="actions">
           <a class="btn secondary" href="./index.html">回到看板</a>
@@ -458,7 +458,7 @@
         <div class="status" id="lastUpdated"><span class="dot"></span><span>尚未載入</span></div>
       </div>
       <div class="status-row">
-        <span class="pill">支援貼上：`category` / `region` / `store` / `search` / `onsale` / `prod`</span>
+        <span class="pill">支援貼上：`category` / `region` / `store` / `search` / `prod`</span>
         <span class="pill">一次貼多個 URL，按送出就會加入</span>
       </div>
     </section>
@@ -471,13 +471,13 @@
             <div class="meta">一行一個 URL，或直接貼一串連結</div>
           </div>
           <label class="field-label" for="urlInput">貼上來源網址</label>
-          <textarea id="urlInput" placeholder="https://24h.pchome.com.tw/category/DHBF06C&#10;https://24h.pchome.com.tw/onsale/&#10;https://24h.pchome.com.tw/prod/DRAHL3-A900JHF97&#10;https://24h.pchome.com.tw/search/?q=SNV3S%2F1000G"></textarea>
+          <textarea id="urlInput" placeholder="https://24h.pchome.com.tw/category/DHBF06C&#10;https://24h.pchome.com.tw/prod/DRAHL3-A900JHF97&#10;https://24h.pchome.com.tw/search/?q=SNV3S%2F1000G"></textarea>
           <div class="actions" style="margin-top: 14px;">
             <button class="btn" id="submitBtn" type="button">送出加入</button>
             <button class="btn secondary" id="clearBtn" type="button">清空</button>
           </div>
           <div class="helper">
-            `onsale` 會直接抓官方限時特價 JSON。`prod` 來源會先抓商品頁，嘗試轉成可追蹤的搜尋來源。<br />
+            `prod` 來源會先抓商品頁，嘗試轉成可追蹤的搜尋來源。<br />
             本機開啟時會直接寫回 `pchome-sources.json`；GitHub Pages 上則會先排入 queue，再交給 GitHub Actions 寫回。
           </div>
           <div class="status-row" style="margin-top: 14px;">
@@ -560,14 +560,13 @@
       region: 'Region',
       store: 'Store',
       search: 'Search',
-      onsale: 'OnSale',
       product: 'Product',
       other: 'Other'
     }[String(kind || '').toLowerCase()] || String(kind || 'other'));
 
     const kindClass = kind => {
       const value = String(kind || '').toLowerCase();
-      if (value === 'search' || value === 'onsale') return 'added';
+      if (value === 'search') return 'added';
       if (value === 'product') return 'skipped';
       return '';
     };
@@ -720,7 +719,7 @@
         <tr>
           <td><code>${escapeHtml(source.key || '')}</code></td>
           <td>
-            <div>${escapeHtml(source.kind === 'onsale' ? '限時瘋搶 3C' : source.label || '')}</div>
+            <div>${escapeHtml(source.label || '')}</div>
             <div class="muted" style="margin-top:4px;">${escapeHtml(source.title || '')}</div>
           </td>
           <td><span class="badge kind ${kindClass(source.kind)}">${escapeHtml(kindLabel(source.kind))}</span></td>

@@ -61,7 +61,6 @@ export function normalizeUrl(url) {
 export function inferSourceKind(url) {
   try {
     const parsed = new URL(normalizeUrl(url));
-    if (/^\/onsale\/?$/i.test(parsed.pathname)) return 'onsale';
     if (/^\/search\//i.test(parsed.pathname)) return 'search';
     if (/^\/region\//i.test(parsed.pathname)) return 'region';
     if (/^\/category\//i.test(parsed.pathname)) return 'category';
@@ -122,7 +121,6 @@ export function defaultLimitForSource(source) {
   const category = source?.category || 'other';
   const kind = source?.kind || inferSourceKind(source?.url || '');
   if (kind === 'search') return 8;
-  if (kind === 'onsale') return 12;
   if (category === 'mobile') return 6;
   if (category === 'monitor') return kind === 'store' ? 12 : 6;
   if (category === 'accessory') return 8;
@@ -307,17 +305,6 @@ export async function classifySourceUrl(inputUrl, { fetchText } = {}) {
       label,
       category,
       limit: defaultLimitForSource({ kind, category, url })
-    });
-  }
-
-  if (kind === 'onsale') {
-    const url = canonicalizeSourceUrl(normalizedInput);
-    return normalizeSourceEntry({
-      kind,
-      url,
-      label: '限時瘋搶 3C',
-      category: 'computer',
-      limit: defaultLimitForSource({ kind, category: 'computer', url })
     });
   }
 
