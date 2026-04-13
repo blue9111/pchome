@@ -147,7 +147,7 @@
           </div>
         </section>
 
-        <section class="glass rounded-[2rem] p-5 sm:p-6">
+        <section id="productBoard" class="glass rounded-[2rem] p-5 sm:p-6">
           <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div><h2 class="display text-2xl font-black text-white">深度評估表</h2><p class="mt-2 text-sm text-slate-400">列出今日所有 3C 相關特價，並可用篩選按鈕快速縮小範圍。</p></div>
             <div class="text-sm text-slate-400"><span id="visible-count">目前顯示 0 / 0 筆</span></div>
@@ -754,6 +754,12 @@
       updateFilterButtons();
     }
 
+    function scrollToProductBoardTop() {
+      const board = document.getElementById('productBoard');
+      if (!board) return;
+      board.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
     function updateHeader() {
       const { dateText } = formatTaipeiNow();
       const todayDate = document.getElementById('today-date');
@@ -1031,6 +1037,7 @@
         if (state.page > 1) {
           state.page -= 1;
           renderView();
+          scrollToProductBoardTop();
         }
       });
       document.getElementById('nextPageBtn').addEventListener('click', () => {
@@ -1038,6 +1045,7 @@
         if (state.page < totalPages) {
           state.page += 1;
           renderView();
+          scrollToProductBoardTop();
         }
       });
     }
