@@ -519,4 +519,13 @@
     "category": "mobile",
     "limit": 12
   }
+  ,
+  {
+    "key": "onsale",
+    "kind": "onsale",
+    "url": "https://24h.pchome.com.tw/onsale/",
+    "label": "限時瘋搶 3C",
+    "category": "computer",
+    "limit": 12
+  }
 ]
