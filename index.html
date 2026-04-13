@@ -58,9 +58,7 @@
     html[data-device="desktop"] .mobile-only { display:none !important; }
     .is-hidden { display:none !important; }
     .flash { animation:flash .9s ease-out 1; }
-    .avoid-swap { animation:avoidSwap .35s ease; }
     @keyframes flash { 0% { box-shadow:0 0 0 0 rgba(0,255,127,0); } 30% { box-shadow:0 0 0 1px rgba(0,255,127,.20), 0 0 28px rgba(0,255,127,.16); } 100% { box-shadow:0 0 0 0 rgba(0,255,127,0); } }
-    @keyframes avoidSwap { 0% { opacity:0; transform:translateY(8px) scale(.985); } 100% { opacity:1; transform:translateY(0) scale(1); } }
     .bg-grid { background-image:linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px); background-size:28px 28px; mask-image:linear-gradient(to bottom, rgba(0,0,0,.9), transparent 100%); }
   </style>
 </head>
@@ -125,7 +123,7 @@
           <div class="mb-4 flex w-full flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
             <div class="w-full">
               <h2 class="display text-2xl font-black text-white">搜尋 / 排序</h2>
-              <p class="mt-2 text-sm text-slate-400">先調整條件，再看下方表格、避雷針。</p>
+              <p class="mt-2 text-sm text-slate-400">先調整條件，再看下方表格。</p>
             </div>
             <div class="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
               <label class="relative">
@@ -143,7 +141,7 @@
           </div>
           <div class="mb-3 flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
             <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1">即時模式：每 10 分鐘重抓</span>
-            <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1">搜尋會同步影響表格、避雷針</span>
+            <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1">搜尋會同步影響表格</span>
           </div>
         </section>
 
@@ -191,13 +189,6 @@
           </div>
         </section>
 
-        <section class="grid gap-6">
-          <div class="danger-border glass w-full min-w-0 overflow-hidden rounded-[2rem] p-6">
-            <div class="flex items-center gap-3"><div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#ff4d4d]/10 text-2xl text-[#ff4d4d]">⚠</div><div><h2 class="display text-2xl font-black text-white">今日避雷針</h2><p class="mt-1 text-sm text-slate-400">專抓堆料失衡、核心規格短板明顯，以及價格帶沒有對齊同級對手的商品。</p></div></div>
-            <div id="avoidBox" class="mt-5 w-full min-w-0 overflow-hidden rounded-2xl border border-[#ff4d4d]/20 bg-[#ff4d4d]/6 p-5"></div>
-          </div>
-        </section>
-
       </div>
     </section>
 
@@ -218,10 +209,9 @@
       return mode;
     };
     let currentDeviceMode = syncDeviceMode();
-    const state = { products: [], filter: 'all', filterTouched: false, query: '', sort: 'discount-desc', source: 'live', syncStatus: 'loading', sourceLabel: 'PChome 3C 分類即時抓取中', lastSyncAt: null, loadRunId: 0, page: 1, avoidRotationIndex: 0, avoidRotationItems: [], avoidRotationDate: '' };
+    const state = { products: [], filter: 'all', filterTouched: false, query: '', sort: 'discount-desc', source: 'live', syncStatus: 'loading', sourceLabel: 'PChome 3C 分類即時抓取中', lastSyncAt: null, loadRunId: 0, page: 1 };
     const autoRefreshMs = 10 * 60 * 1000;
     let autoRefreshTimer = null;
-    let avoidRotationTimer = null;
     const money = v => new Intl.NumberFormat('zh-TW').format(v);
     const ratingBadgeClass = rating => rating === 'strong' ? 'badge-green' : rating === 'consider' ? 'badge-amber' : 'badge-red';
     const categoryLabel = category => ({ computer:'電腦類', mobile:'記憶體 / 硬碟', wearable:'穿戴裝置', accessory:'配件類', other:'其他 3C' }[category] || '其他 3C');
@@ -266,96 +256,6 @@
       return '價格有降，但還是先看用途值不值得。';
     };
     const normalizeSpaces = text => (text || '').replace(/\s+/g, ' ').trim();
-    const getTaipeiDateKey = (date = new Date()) => {
-      const parts = new Intl.DateTimeFormat('en-CA', {
-        timeZone: 'Asia/Taipei',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-      }).formatToParts(date);
-      const map = Object.fromEntries(parts.map(part => [part.type, part.value]));
-      return `${map.year}-${map.month}-${map.day}`;
-    };
-    const hashString = text => {
-      let hash = 2166136261;
-      for (let i = 0; i < text.length; i += 1) {
-        hash ^= text.charCodeAt(i);
-        hash = Math.imul(hash, 16777619);
-      }
-      return hash >>> 0;
-    };
-    const sortBySeed = (items, seed) => [...items].sort((a, b) => {
-      const aKey = hashString(`${seed}|${a.id || a.url || a.title || ''}`);
-      const bKey = hashString(`${seed}|${b.id || b.url || b.title || ''}`);
-      return aKey - bKey || a.title.localeCompare(b.title, 'zh-Hant') || a.price - b.price;
-    });
-    const extractAvoidSignals = item => {
-      const text = normalizeSpaces([item.title, item.spec].filter(Boolean).join(' '));
-      const signals = [];
-      const pushMatch = regex => {
-        const match = text.match(regex);
-        if (match && match[0] && !signals.includes(match[0])) signals.push(match[0]);
-      };
-      pushMatch(/(?:\d+(?:\.\d+)?)\s*(?:米|m)\b/i);
-      pushMatch(/\b\d+\s*插\b/i);
-      pushMatch(/\b\d+\s*USB\b/i);
-      pushMatch(/\bPD\s?\d+W\b|\bPD快充\b|\bQC\d?\b/i);
-      pushMatch(/\b\d+\s*W\b/i);
-      pushMatch(/\b\d+(?:\.\d+)?\s*吋\b/i);
-      pushMatch(/\b\d+\s*(?:G|GB|TB)\b/i);
-      pushMatch(/\b\d+\s*Hz\b/i);
-      pushMatch(/\b\d+\s*mm\b/i);
-      pushMatch(/(?:RTX\s?\d{3,4}(?:\s?Ti)?|GTX\s?\d{3,4}|Arc\s?\w+|i[3579]-?\d{3,5}[A-Z]*|R[3579]-?\d{3,5}[A-Z]*|Ryzen\s*\d\s*\d{3,4}[A-Z]*|M\d)/i);
-      pushMatch(/(?:LTE|GPS|5G|Wi-Fi\s?7|Wi-Fi\s?6|WiFi\s?7|WiFi\s?6)/i);
-      return signals.slice(0, 5);
-    };
-    const buildAvoidTease = item => {
-      const title = item.title || '';
-      const category = item.category || detectCategory(title);
-      if (category === 'accessory') return '折扣看起來很甜，但配件最怕只有數字好看，實際供電和安規卻沒有跟上。';
-      if (category === 'computer') return '這種商品最容易把折扣做漂亮，真正值不值得還是要回到核心規格有沒有升級。';
-      if (category === 'mobile') return '記憶體和硬碟不能只看降價，容量、速度、相容性和保固才是關鍵。';
-      if (category === 'wearable') return '穿戴裝置要看續航、感測器和通訊規格，外型再新也不代表實力到位。';
-      return '折扣不是問題，問題是核心規格沒有把同價位優勢拉開。';
-    };
-    const buildAvoidSpecReview = item => {
-      const title = item.title || '';
-      const spec = item.spec || '';
-      const category = item.category || detectCategory(title);
-      const text = normalizeSpaces([title, spec].filter(Boolean).join(' '));
-      const signals = extractAvoidSignals(item);
-      const signalText = signals.length ? signals.join('、') : '這組規格';
-      if (category === 'accessory') {
-        const line = signals.find(s => /米|m/i.test(s));
-        const plugs = signals.find(s => /插/i.test(s));
-        const usb = signals.find(s => /USB/i.test(s));
-        const power = signals.find(s => /W$/i.test(s) || /PD/i.test(s) || /QC/i.test(s));
-        const bits = [line, plugs, usb, power].filter(Boolean);
-        return `規格雷點：${bits.length ? `這筆先把 ${bits.join('、')} 標出來` : '這類配件的線長、插孔數及 USB 供電沒有特別突出'}，但如果沒有 PD/QC、額定功率或安規標示，實際上多半只是「能用」而不是「好用」。`;
-      }
-      if (category === 'computer') {
-        const bits = signals.filter(s => /RTX|GTX|Arc|i[3579]|R[3579]|Ryzen|M\d|G|GB|TB|Hz|吋/i.test(s)).slice(0, 4);
-        return `規格雷點：先看 CPU / GPU / 記憶體 / SSD / 螢幕更新率。${bits.length ? `這筆只看到 ${bits.join('、')}，` : ''}但如果同價位能換到更高一級的顯卡、1TB SSD 或更高刷新率，這筆就比較像標準配備，不算甜。`;
-      }
-      if (category === 'mobile') {
-        const bits = signals.filter(s => /GB|TB|Hz|mm/i.test(s)).slice(0, 4);
-        return `規格雷點：記憶體要先看容量、頻率與相容性，硬碟要看介面、容量、讀寫與保固。${bits.length ? `這筆只看到 ${bits.join('、')}，` : ''}但如果同價位能買到更高容量或更快速度，這筆就比較像標準價，不算甜。`;
-      }
-      if (category === 'wearable') {
-        const bits = signals.filter(s => /mm|mAh|LTE|GPS|GB/i.test(s) || /手錶|手環|Watch/i.test(text)).slice(0, 4);
-        return `規格雷點：穿戴裝置要先看 GPS/LTE、續航、感測器及錶徑。${bits.length ? `這筆抓得到 ${bits.join('、')}，` : ''}但如果電池、健康監測或通訊規格沒有升級，通常只是換外型，不是換實力。`;
-      }
-      if (/NAS|路由器/i.test(text)) {
-        return `規格雷點：這類網通設備先看埠速、頻段、Mesh 架構及可擴充性。${signals.length ? `目前只看到 ${signalText}，` : ''}但若沒有更高埠速或更完整頻寬配置，價格優勢就不算明顯。`;
-      }
-      if (/相機|鏡頭|攝影/i.test(text)) {
-        return `規格雷點：相機要看感光元件、鏡頭焦段、錄影規格及防手震。${signals.length ? `目前只看到 ${signalText}，` : ''}但如果感光或鏡頭沒有升級，單靠像素數字很難代表實際畫質。`;
-      }
-      if (/閱讀器|電子書|電子紙/i.test(text)) {
-        return `規格雷點：閱讀器重點是螢幕尺寸、解析度、背光及系統。${signals.length ? `這筆呈現 ${signalText}，` : ''}但如果刷新、色彩或系統生態沒有加分，體驗不會有太大躍升。`;
-      }
-      return `規格雷點：核心規格目前只看到 ${signalText}，但沒有明顯拉開同價位差距；如果同級已能拿到更高容量、更快輸出或更完整功能，這筆就不算漂亮。`;
-    };
     const accessoryPattern = /延長線|排插|插座|轉接頭|轉接器|USB\s*Hub|集線器|傳輸線|充電線|線材|保護殼|保護貼|滑鼠墊|支架|收納盒|手機架|車架|車充/i;
     const wearablePattern = /Apple Watch|Watch Ultra|Watch SE|Galaxy Watch|Garmin|Fitbit|Amazfit|華米|HUAWEI WATCH|小米手錶|智慧手錶|智能手錶|智慧.*手環|健康.*手環|運動.*手環|手錶|穿戴裝置|Wearable/i;
     const storagePattern = /記憶體|RAM|DRAM|DDR[345]|SSD|固態硬碟|行動固態硬碟|外接硬碟|內接硬碟|硬碟|HDD|NVMe|M\.2|U\.2/i;
@@ -710,15 +610,7 @@
       const message = '正在從 PChome 3C 分類抓取最新商品資料，請稍候…';
       const tableBody = document.getElementById('tableBody');
       const mobileList = document.getElementById('mobileProductList');
-      const box = document.getElementById('avoidBox');
       const paginationBar = document.getElementById('paginationBar');
-      if (avoidRotationTimer) {
-        clearInterval(avoidRotationTimer);
-        avoidRotationTimer = null;
-      }
-      state.avoidRotationItems = [];
-      state.avoidRotationIndex = 0;
-      state.avoidRotationDate = '';
       if (isMobileViewport()) {
         if (mobileList) {
           mobileList.innerHTML = `<div class="rounded-[1.4rem] border border-white/10 bg-white/[0.03] px-4 py-6 text-center text-sm text-slate-400">${message}</div>`;
@@ -729,9 +621,6 @@
           tableBody.innerHTML = `<tr><td colspan="5" class="px-4 py-10 text-center text-sm text-slate-400">${message}</td></tr>`;
         }
         if (mobileList) mobileList.innerHTML = '';
-      }
-      if (box) {
-        box.innerHTML = `<div class="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm leading-7 text-slate-300">${message}</div>`;
       }
       if (paginationBar) paginationBar.classList.add('hidden');
       updateMeta(0, 0, 1);
@@ -759,7 +648,6 @@
         const list = document.getElementById('mobileProductList');
         if (list) list.innerHTML = '';
       }
-      renderAvoid(allItems);
       updateMeta(pageItems.length, allItems.length, totalPages);
       updatePagination(totalPages);
       updateFilterButtons();
@@ -860,7 +748,7 @@
       }
 
       list.innerHTML = items.map((item, index) => `
-        <article data-row data-category="${item.category}" data-rating="${item.rating}" class="avoid-swap rounded-[1.4rem] border border-white/10 bg-white/[0.03] p-4 shadow-[0_10px_30px_rgba(0,0,0,.18)] ${item.rating === 'avoid' ? 'opacity-60' : ''}">
+        <article data-row data-category="${item.category}" data-rating="${item.rating}" class="rounded-[1.4rem] border border-white/10 bg-white/[0.03] p-4 shadow-[0_10px_30px_rgba(0,0,0,.18)] ${item.rating === 'avoid' ? 'opacity-60' : ''}">
           <div class="flex items-start gap-3">
             <a href="${item.url}" target="_blank" rel="noreferrer" class="shrink-0">
               <img src="${item.image}" alt="${item.title}" class="h-20 w-20 rounded-2xl border border-white/10 object-cover sm:h-20 sm:w-20" />
@@ -917,84 +805,6 @@
         </article>`).join('');
     }
 
-    function renderAvoid(items) {
-      const box = document.getElementById('avoidBox');
-      const rotationSeed = getTaipeiDateKey();
-      const avoidItems = sortBySeed(items.filter(x => x.rating === 'avoid').slice(0, 3), rotationSeed);
-      if (avoidRotationTimer) {
-        clearInterval(avoidRotationTimer);
-        avoidRotationTimer = null;
-      }
-      if (!avoidItems.length) {
-        state.avoidRotationItems = [];
-        state.avoidRotationIndex = 0;
-        state.avoidRotationDate = rotationSeed;
-        box.innerHTML = `
-          <div class="flex flex-wrap items-center gap-2"><span class="badge-amber rounded-full px-3 py-1 text-xs font-bold">暫無明確避雷款</span><span class="text-sm font-semibold text-white">目前篩選條件沒有踩雷商品</span></div>
-          <p class="mt-3 text-sm leading-7 text-slate-300">這一輪沒有看到明顯規格短板或價格失衡的紅標項目，代表核心參數至少還在可接受範圍。</p>
-          <p class="mt-3 text-sm leading-7 text-slate-300">如果你要我更兇一點，我也可以把這區改成「今日最不值得看」或直接列出雷點清單。</p>`;
-        return;
-      }
-
-      state.avoidRotationItems = avoidItems;
-      if (state.avoidRotationDate !== rotationSeed) {
-        state.avoidRotationDate = rotationSeed;
-        state.avoidRotationIndex = 0;
-      }
-      state.avoidRotationIndex = state.avoidRotationIndex % avoidItems.length;
-
-      const paint = () => {
-        const active = state.avoidRotationItems[state.avoidRotationIndex];
-        if (!active) return;
-        const tease = buildAvoidTease(active);
-        const specReview = buildAvoidSpecReview(active);
-        const otherItems = state.avoidRotationItems.filter((_, idx) => idx !== state.avoidRotationIndex);
-        box.innerHTML = `
-          <div class="avoid-swap mt-4 w-full min-w-0 overflow-hidden rounded-2xl border border-[#ff4d4d]/18 bg-[#0d1118]/70 p-4">
-            <div class="flex min-w-0 items-start gap-3">
-              <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-[#ff4d4d]/18 bg-[#ff4d4d]/10 text-lg font-black text-[#ffb3b3]">${state.avoidRotationIndex + 1}</div>
-              <div class="min-w-0 flex-1">
-                <div class="truncate max-w-full text-base font-bold text-white">${active.title}</div>
-                <div class="mt-1 break-words text-xs leading-5 text-slate-400">${active.spec}</div>
-                <div class="mt-3 flex flex-wrap gap-2">
-                  <span class="badge-red rounded-full px-2.5 py-1 text-[11px] font-bold">不推薦</span>
-                  <span class="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-slate-300">NT$ ${money(active.price)}</span>
-                  <span class="rounded-full border border-[#00ff7f]/20 bg-[#00ff7f]/8 px-2.5 py-1 text-[11px] font-bold text-[#00ff7f]">-${active.discount}%</span>
-                </div>
-              </div>
-            </div>
-            <p class="mt-4 break-words text-sm leading-7 text-slate-300">踩雷吐槽：${tease}</p>
-            <p class="mt-3 break-words text-sm leading-7 text-slate-300">${specReview}</p>
-          </div>
-          <div class="mt-4 grid w-full min-w-0 gap-2">
-            ${otherItems.map(item => {
-              const idx = state.avoidRotationItems.findIndex(origin => origin.id === item.id);
-              return `
-              <button type="button" data-avoid-dot="${idx}" class="group flex w-full min-w-0 items-start gap-3 overflow-hidden rounded-2xl border p-3 text-left transition ${idx === state.avoidRotationIndex ? 'border-[#ff4d4d]/40 bg-[#ff4d4d]/12 ring-1 ring-[#ff4d4d]/20' : 'border-white/10 bg-white/5 hover:border-[#ff4d4d]/25'}">
-                <div class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/5 text-[11px] font-black text-slate-300">${idx + 1}</div>
-                <div class="min-w-0 flex-1">
-                  <div class="truncate max-w-full text-sm font-bold text-white">${item.title}</div>
-                  <div class="mt-1 truncate max-w-full text-[11px] leading-4 text-slate-400">${item.spec}</div>
-                  <div class="mt-2 flex flex-wrap gap-2">
-                    <span class="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-slate-300">NT$ ${money(item.price)}</span>
-                    <span class="rounded-full border border-[#00ff7f]/20 bg-[#00ff7f]/8 px-2.5 py-1 text-[11px] font-bold text-[#00ff7f]">-${item.discount}%</span>
-                  </div>
-                </div>
-              </button>`;
-            }).join('')}
-          </div>
-          <div class="mt-3 text-xs text-slate-500">同日順序固定，隔天會重新洗牌。主卡每 4 秒輪轉 1 筆，下方顯示另外 2 筆，點任一筆可手動切換。</div>`;
-      };
-
-      paint();
-      if (state.avoidRotationItems.length > 1) {
-        avoidRotationTimer = setInterval(() => {
-          state.avoidRotationIndex = (state.avoidRotationIndex + 1) % state.avoidRotationItems.length;
-          paint();
-        }, 4000);
-      }
-    }
-
     function applyFilter(filter) {
       state.filter = filter;
       state.filterTouched = true;
@@ -1042,14 +852,6 @@
 
       document.querySelectorAll('[data-filter]').forEach(btn => btn.addEventListener('click', () => applyFilter(btn.dataset.filter)));
       document.getElementById('reloadBtn').addEventListener('click', () => void loadSnapshot());
-      document.getElementById('avoidBox').addEventListener('click', event => {
-        const btn = event.target.closest('[data-avoid-dot]');
-        if (!btn) return;
-        const nextIndex = Number(btn.dataset.avoidDot);
-        if (Number.isNaN(nextIndex)) return;
-        state.avoidRotationIndex = nextIndex;
-        renderAvoid(getVisibleItems());
-      });
       document.getElementById('prevPageBtn').addEventListener('click', () => {
         if (state.page > 1) {
           state.page -= 1;
