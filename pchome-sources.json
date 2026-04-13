@@ -160,6 +160,86 @@
     "limit": 12
   },
   {
+    "key": "monitor-asus",
+    "kind": "store",
+    "url": "https://24h.pchome.com.tw/store/DSAB03",
+    "label": "ASUS 全系列",
+    "category": "computer",
+    "limit": 12
+  },
+  {
+    "key": "monitor-acer",
+    "kind": "store",
+    "url": "https://24h.pchome.com.tw/store/DSABEL",
+    "label": "Acer 全系列",
+    "category": "computer",
+    "limit": 12
+  },
+  {
+    "key": "monitor-msi",
+    "kind": "store",
+    "url": "https://24h.pchome.com.tw/store/DSABCU",
+    "label": "MSI 全系列",
+    "category": "computer",
+    "limit": 12
+  },
+  {
+    "key": "monitor-viewsonic",
+    "kind": "store",
+    "url": "https://24h.pchome.com.tw/store/DSABEW",
+    "label": "ViewSonic 全系列",
+    "category": "computer",
+    "limit": 12
+  },
+  {
+    "key": "monitor-benq",
+    "kind": "store",
+    "url": "https://24h.pchome.com.tw/store/DSABF1",
+    "label": "BenQ 全系列",
+    "category": "computer",
+    "limit": 12
+  },
+  {
+    "key": "monitor-dell",
+    "kind": "store",
+    "url": "https://24h.pchome.com.tw/store/DSABOJ",
+    "label": "Dell 全系列",
+    "category": "computer",
+    "limit": 12
+  },
+  {
+    "key": "monitor-samsung",
+    "kind": "store",
+    "url": "https://24h.pchome.com.tw/store/DSABON",
+    "label": "Samsung 全系列",
+    "category": "computer",
+    "limit": 12
+  },
+  {
+    "key": "monitor-gigabyte",
+    "kind": "store",
+    "url": "https://24h.pchome.com.tw/store/DSABHU",
+    "label": "技嘉 全系列",
+    "category": "computer",
+    "limit": 12
+  },
+  {
+    "key": "monitor-philips",
+    "kind": "store",
+    "url": "https://24h.pchome.com.tw/store/DSABQI",
+    "label": "PHILIPS 全系列",
+    "category": "computer",
+    "limit": 12
+  },
+  {
+    "key": "monitor-aoc",
+    "kind": "store",
+    "url": "https://24h.pchome.com.tw/store/DSABQR",
+    "label": "AOC 全系列",
+    "category": "computer",
+    "limit": 12
+  },
+  {
     "key": "desktop-pc",
     "kind": "region",
     "url": "https://24h.pchome.com.tw/region/DSAU",
