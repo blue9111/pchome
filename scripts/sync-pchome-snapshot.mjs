@@ -32,6 +32,92 @@ const extractProductId = href => {
   return match ? match[1] : normalizeSpaces(href);
 };
 
+const PRODUCT_IMAGE_CACHE = new Map();
+const isPlaceholderImageUrl = url => /mobile_loading\.svg/i.test(String(url || ''));
+
+function collectImageCandidates(text) {
+  const source = String(text || '');
+  const candidates = [];
+  const seen = new Set();
+  const add = value => {
+    const url = toAbsoluteUrl(normalizeSpaces(value));
+    if (!url || seen.has(url) || isPlaceholderImageUrl(url)) return;
+    seen.add(url);
+    candidates.push(url);
+  };
+
+  const patterns = [
+    /<meta[^>]+property=["']og:image["'][^>]*content=["']([^"']+)["'][^>]*>/gi,
+    /<meta[^>]+content=["']([^"']+)["'][^>]*property=["']og:image["'][^>]*>/gi,
+    /<meta[^>]+name=["']twitter:image["'][^>]*content=["']([^"']+)["'][^>]*>/gi,
+    /<meta[^>]+content=["']([^"']+)["'][^>]*name=["']twitter:image["'][^>]*>/gi,
+    /"image"\s*:\s*\[\s*"([^"]+)"/gi,
+    /"image"\s*:\s*"([^"]+)"/gi,
+    /!\[Image\s+1:[^\]]*\]\(([^)]+)\)/gi,
+    /https?:\/\/img\.pchome\.com\.tw\/cs\/items\/[^)\s"'`]+/gi
+  ];
+
+  for (const pattern of patterns) {
+    for (const match of source.matchAll(pattern)) {
+      add(match[1] || match[0]);
+    }
+  }
+
+  return candidates;
+}
+
+function extractBestImageUrl(text) {
+  for (const candidate of collectImageCandidates(text)) {
+    if (candidate && !isPlaceholderImageUrl(candidate)) return candidate;
+  }
+  return '';
+}
+
+async function resolveProductImage(url) {
+  const normalized = normalizeSpaces(toAbsoluteUrl(url));
+  if (!normalized) return '';
+  if (PRODUCT_IMAGE_CACHE.has(normalized)) {
+    return await PRODUCT_IMAGE_CACHE.get(normalized);
+  }
+
+  const promise = (async () => {
+    const directUrl = normalized.replace(/^http:\/\//i, 'https://');
+    const candidates = [directUrl, buildJinaUrl(directUrl), buildAllOriginsUrl(buildJinaUrl(directUrl))];
+    for (const candidate of candidates) {
+      try {
+        const text = await fetchTextWithTimeout(candidate, 20000);
+        const resolved = extractBestImageUrl(text);
+        if (resolved) return resolved;
+      } catch (error) {
+        // Ignore and continue to the next candidate.
+      }
+    }
+    return '';
+  })();
+
+  PRODUCT_IMAGE_CACHE.set(normalized, promise);
+  const resolved = await promise;
+  if (resolved) {
+    PRODUCT_IMAGE_CACHE.set(normalized, resolved);
+  } else {
+    PRODUCT_IMAGE_CACHE.delete(normalized);
+  }
+  return resolved;
+}
+
+async function repairPlaceholderImages(items) {
+  const tasks = [];
+  for (const item of items || []) {
+    if (!item?.url || !isPlaceholderImageUrl(item.image)) continue;
+    tasks.push((async () => {
+      const resolved = await resolveProductImage(item.url);
+      if (resolved) item.image = resolved;
+    })());
+  }
+  await Promise.all(tasks);
+  return items;
+}
+
 function parsePchomeCards(markdown, source) {
   const lines = String(markdown || '').split(/\r?\n/);
   const items = [];
@@ -97,7 +183,7 @@ async function fetchLiveSource(source) {
     try {
       const responseText = await fetchTextWithTimeout(candidate, 20000);
       const parsed = parsePchomeCards(responseText, source);
-      if (parsed.length) return parsed;
+      if (parsed.length) return await repairPlaceholderImages(parsed);
     } catch (error) {
       console.warn(`[warn] ${source.key} via ${candidate.includes('allorigins') ? 'allorigins' : 'jina'} failed: ${error.message}`);
     }
@@ -107,14 +193,22 @@ async function fetchLiveSource(source) {
 
 function mergeAndSortSnapshot(sourceBuckets) {
   const merged = [];
-  const seen = new Set();
+  const indexByKey = new Map();
   for (const bucket of sourceBuckets) {
     for (const item of bucket || []) {
       if (!item || item.discount <= 0) continue;
       const key = item.id || item.url || item.title;
-      if (!key || seen.has(key)) continue;
-      seen.add(key);
-      merged.push(item);
+      if (!key) continue;
+      const existingIndex = indexByKey.get(key);
+      if (existingIndex === undefined) {
+        indexByKey.set(key, merged.length);
+        merged.push(item);
+        continue;
+      }
+      const existing = merged[existingIndex];
+      if (isPlaceholderImageUrl(existing?.image) && !isPlaceholderImageUrl(item.image)) {
+        merged[existingIndex] = { ...existing, ...item };
+      }
     }
   }
   merged.sort((a, b) => b.discount - a.discount || a.title.localeCompare(b.title, 'zh-Hant') || a.price - b.price);
