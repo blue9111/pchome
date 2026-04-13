@@ -16,28 +16,12 @@
     "limit": 8
   },
   {
-    "key": "wearable",
-    "kind": "region",
-    "url": "https://24h.pchome.com.tw/region/DYAI",
-    "label": "智慧穿戴",
-    "category": "wearable",
-    "limit": 6
-  },
-  {
     "key": "power-bank",
     "kind": "region",
     "url": "https://24h.pchome.com.tw/region/DYAO",
     "label": "行動電源",
     "category": "other",
     "limit": 8
-  },
-  {
-    "key": "apple-watch",
-    "kind": "category",
-    "url": "https://24h.pchome.com.tw/category/DYAJ75C",
-    "label": "Apple Watch",
-    "category": "wearable",
-    "limit": 6
   },
   {
     "key": "computer-gaming",

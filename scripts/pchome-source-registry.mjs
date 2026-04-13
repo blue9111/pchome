@@ -6,7 +6,6 @@ export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '
 export const SOURCE_REGISTRY_PATH = path.join(ROOT, 'pchome-sources.json');
 
 const accessoryPattern = /延長線|排插|插座|轉接頭|轉接器|USB\s*Hub|集線器|傳輸線|充電線|線材|保護殼|保護貼|滑鼠墊|支架|收納盒|手機架|車架|車充/i;
-const wearablePattern = /Apple Watch|Watch Ultra|Watch SE|Galaxy Watch|Garmin|Fitbit|Amazfit|華米|HUAWEI WATCH|小米手錶|智慧手錶|智能手錶|智慧.*手環|健康.*手環|運動.*手環|手錶|穿戴裝置|Wearable/i;
 const storagePattern = /記憶體|RAM|DRAM|DDR[345]|SSD|固態硬碟|行動固態硬碟|外接硬碟|內接硬碟|硬碟|HDD|NVMe|M\.2|U\.2/i;
 const computerContextPattern = /筆電|桌機|電腦|螢幕|顯示器|電競|Surface|MacBook|Chromebook/i;
 const computerPattern = /筆電|桌機|顯示器|螢幕|SSD|固態硬碟|行動固態硬碟|NVMe|M\.2|硬碟|記憶體|顯卡|GPU|RTX|主機|NAS|路由器|鍵盤|滑鼠|喇叭/i;
@@ -102,7 +101,6 @@ export function canonicalizeSourceUrl(url) {
 export function detectCategoryFromText(text) {
   const value = String(text || '');
   if (accessoryPattern.test(value)) return 'accessory';
-  if (wearablePattern.test(value)) return 'wearable';
   if (storagePattern.test(value) && !computerContextPattern.test(value)) return 'mobile';
   if (computerPattern.test(value)) return 'computer';
   if (otherPattern.test(value)) return 'other';
@@ -111,7 +109,7 @@ export function detectCategoryFromText(text) {
 
 export function isThreeCRelatedTitle(title) {
   const value = String(title || '');
-  return value && (accessoryPattern.test(value) || wearablePattern.test(value) || (storagePattern.test(value) && !computerContextPattern.test(value)) || computerPattern.test(value) || otherPattern.test(value));
+  return value && (accessoryPattern.test(value) || (storagePattern.test(value) && !computerContextPattern.test(value)) || computerPattern.test(value) || otherPattern.test(value));
 }
 
 export function defaultLimitForSource(source) {
@@ -119,7 +117,6 @@ export function defaultLimitForSource(source) {
   const kind = source?.kind || inferSourceKind(source?.url || '');
   if (kind === 'search') return 8;
   if (category === 'mobile') return 6;
-  if (category === 'wearable') return 6;
   if (category === 'accessory') return 8;
   if (category === 'computer') return kind === 'store' ? 6 : 6;
   return 6;
