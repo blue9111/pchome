@@ -480,23 +480,6 @@
     "limit": 12
   },
   {
-    "key": "ssd-sp",
-    "kind": "store",
-    "url": "https://24h.pchome.com.tw/store/DRAHCM",
-    "label": "SSD｜SP 廣穎",
-    "category": "mobile",
-    "fetchMode": "html",
-    "limit": 30
-  },
-  {
-    "key": "ssd-sp-p34a60-512g",
-    "kind": "search",
-    "url": "https://24h.pchome.com.tw/search/?q=P34A60%20512GB",
-    "label": "SP 廣穎 P34A60 512GB",
-    "category": "mobile",
-    "limit": 8
-  },
-  {
     "key": "ssd-transcend",
     "kind": "store",
     "url": "https://24h.pchome.com.tw/store/DRAHKH",
