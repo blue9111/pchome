@@ -22,6 +22,18 @@ const parseMoneyText = text => {
   return normalized ? Number(normalized) : 0;
 };
 
+const decodeHtmlEntities = text => String(text || '')
+  .replace(/&nbsp;/gi, ' ')
+  .replace(/&amp;/gi, '&')
+  .replace(/&quot;/gi, '"')
+  .replace(/&#39;/gi, '\'')
+  .replace(/&lt;/gi, '<')
+  .replace(/&gt;/gi, '>')
+  .replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCodePoint(Number.parseInt(hex, 16)))
+  .replace(/&#(\d+);/g, (_, num) => String.fromCodePoint(Number(num)));
+
+const stripHtmlTags = text => String(text || '').replace(/<[^>]*>/g, ' ');
+
 const toAbsoluteUrl = url => {
   if (!url) return '';
   if (url.startsWith('//')) return `https:${url}`;
@@ -246,19 +258,119 @@ function parsePchomeCards(markdown, source) {
   return items;
 }
 
+function parsePchomeHtmlCards(html, source) {
+  const sourceText = String(html || '');
+  const decodedText = sourceText.replace(/\\\"/g, '"');
+  const items = [];
+  const seen = new Set();
+
+  for (const match of decodedText.matchAll(/"id":"([^"]+)"/g)) {
+    const id = match[1];
+    if (!id || seen.has(id)) continue;
+    const slice = decodedText.slice(match.index, match.index + 9000);
+    if (!slice.includes('"imageSrc"') || !slice.includes('"salePrice"') || !slice.includes('"link"')) continue;
+
+    const name = normalizeSpaces(decodeHtmlEntities(stripHtmlTags(slice.match(/"name":"([^"]+)"/)?.[1] || '')));
+    const imageSrc = normalizeSpaces(slice.match(/"imageSrc":"([^"]+)"/)?.[1] || '');
+    const link = normalizeSpaces(slice.match(/"link":"([^"]+)"/)?.[1] || '');
+    const marketingText = normalizeSpaces(decodeHtmlEntities(stripHtmlTags(slice.match(/"marketingText":"([^"]*)"/)?.[1] || '')));
+    const price = parseMoneyText(slice.match(/"price":(\d+)/)?.[1]);
+    const salePrice = parseMoneyText(slice.match(/"salePrice":(\d+)/)?.[1]);
+    if (!name || !imageSrc || !link || !price || !salePrice) continue;
+
+    const title = name;
+    if (!isThreeCRelatedTitle(title)) continue;
+
+    const discount = salePrice > price ? Math.round((1 - price / salePrice) * 1000) / 10 : 0;
+    if (discount <= 0) continue;
+
+    const url = toAbsoluteUrl(link.startsWith('http') ? link : `https://24h.pchome.com.tw${link}`);
+    seen.add(id);
+    items.push({
+      id,
+      title,
+      spec: marketingText || source.label || title,
+      price,
+      originalPrice: salePrice > price ? salePrice : price,
+      image: toAbsoluteUrl(imageSrc),
+      url,
+      category: source.category || detectCategoryFromText(title),
+      query: source.label || source.title || 'PChome 3C 分類',
+      promo: marketingText,
+      discount
+    });
+
+    if (items.length >= (source.limit || 4)) break;
+  }
+
+  if (items.length) return items;
+
+  for (const chunk of sourceText.split('<li class="c-listInfoGrid__item')) {
+    if (!chunk.includes('c-prodInfoV2__link') || !chunk.includes('data-regression="store_prodName"')) continue;
+
+    const hrefMatch = chunk.match(/href="(\/prod\/[^"]+)"/i);
+    const imageMatch = chunk.match(/<img[^>]+src="([^"]+)"[^>]+alt="([^"]*)"/i);
+    const titleMatch = chunk.match(/<h3 class="c-prodInfoV2__title"[^>]*>([\s\S]*?)<\/h3>/i);
+    const promoMatch = chunk.match(/<div class="c-prodInfoV2__marketingText"[^>]*>([\s\S]*?)<\/div>/i);
+    const priceMatch = chunk.match(/c-prodInfoV2__priceValue c-prodInfoV2__priceValue--m">\$(\d[\d,]*)/i);
+    const originalMatch = chunk.match(/c-prodInfoV2__salePrice">[\s\S]*?c-prodInfoV2__priceValue--xs">\$(\d[\d,]*)/i);
+    if (!hrefMatch || !titleMatch || !priceMatch || !imageMatch) continue;
+
+    const url = toAbsoluteUrl(`https://24h.pchome.com.tw${hrefMatch[1]}`);
+    const cardId = extractProductId(url);
+    if (!cardId || seen.has(cardId)) continue;
+
+    const title = normalizeSpaces(decodeHtmlEntities(stripHtmlTags(titleMatch[1])));
+    if (!isThreeCRelatedTitle(title)) continue;
+
+    const price = parseMoneyText(priceMatch[1]);
+    const originalPrice = parseMoneyText(originalMatch?.[1]) || price;
+    if (!title || !price) continue;
+    const discount = originalPrice > price ? Math.round((1 - price / originalPrice) * 1000) / 10 : 0;
+    if (discount <= 0) continue;
+
+    const image = toAbsoluteUrl(imageMatch[1]);
+    const promo = normalizeSpaces(decodeHtmlEntities(stripHtmlTags(promoMatch?.[1])));
+    const leadText = promo;
+    seen.add(cardId);
+    items.push({
+      id: cardId,
+      title,
+      spec: leadText || normalizeSpaces(decodeHtmlEntities(stripHtmlTags(imageMatch[2]))) || source.label || title,
+      price,
+      originalPrice: originalPrice > price ? originalPrice : price,
+      image,
+      url,
+      category: source.category || detectCategoryFromText(title),
+      query: source.label || source.title || 'PChome 3C 分類',
+      promo: leadText,
+      discount
+    });
+
+    if (items.length >= (source.limit || 4)) break;
+  }
+
+  return items;
+}
+
 async function fetchLiveSource(source) {
   if (source.kind === 'onsale') {
     return await fetchOnsaleSource(source);
   }
 
-  const candidates = [buildJinaUrl(source.url), buildAllOriginsUrl(buildJinaUrl(source.url))];
+  const candidates = [
+    { url: source.url, parser: parsePchomeHtmlCards, label: 'html' },
+    { url: buildAllOriginsUrl(source.url), parser: parsePchomeHtmlCards, label: 'allorigins-html' },
+    { url: buildJinaUrl(source.url), parser: parsePchomeCards, label: 'jina' },
+    { url: buildAllOriginsUrl(buildJinaUrl(source.url)), parser: parsePchomeCards, label: 'allorigins' }
+  ];
   for (const candidate of candidates) {
     try {
-      const responseText = await fetchTextWithTimeout(candidate, 20000);
-      const parsed = parsePchomeCards(responseText, source);
+      const responseText = await fetchTextWithTimeout(candidate.url, 20000);
+      const parsed = candidate.parser(responseText, source);
       if (parsed.length) return await repairPlaceholderImages(parsed);
     } catch (error) {
-      console.warn(`[warn] ${source.key} via ${candidate.includes('allorigins') ? 'allorigins' : 'jina'} failed: ${error.message}`);
+      console.warn(`[warn] ${source.key} via ${candidate.label} failed: ${error.message}`);
     }
   }
   return [];
@@ -322,7 +434,15 @@ async function updateIndexHtml(snapshotJson) {
 
 async function main() {
   const liveSources = await loadSourceRegistry();
-  const results = await Promise.allSettled(liveSources.map(source => fetchLiveSource(source)));
+  const priorityKeys = new Set(['ssd-sp', 'ssd-sp-p34a60-512g']);
+  const prioritySources = liveSources.filter(source => priorityKeys.has(source.key));
+  const otherSources = liveSources.filter(source => !priorityKeys.has(source.key));
+
+  const priorityResults = await Promise.allSettled(prioritySources.map(source => fetchLiveSource(source)));
+  const results = [
+    ...priorityResults,
+    ...(await Promise.allSettled(otherSources.map(source => fetchLiveSource(source))))
+  ];
   const fulfilled = results.map(result => (result.status === 'fulfilled' ? result.value : []));
   const snapshot = mergeAndSortSnapshot(fulfilled);
 
