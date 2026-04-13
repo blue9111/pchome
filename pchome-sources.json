@@ -152,6 +152,14 @@
     "limit": 6
   },
   {
+    "key": "monitor-lg",
+    "kind": "store",
+    "url": "https://24h.pchome.com.tw/store/DSABRB",
+    "label": "LG 全系列",
+    "category": "computer",
+    "limit": 12
+  },
+  {
     "key": "desktop-pc",
     "kind": "region",
     "url": "https://24h.pchome.com.tw/region/DSAU",
