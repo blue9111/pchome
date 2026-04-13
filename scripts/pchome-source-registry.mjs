@@ -12,6 +12,8 @@ const computerPattern = /筆電|桌機|顯示器|螢幕|SSD|固態硬碟|行動�
 const otherPattern = /相機|鏡頭|攝影|CarPlay|播放器|掃拖機器人|洗地機|機器人|咖啡機|電風扇|RO濾淨|飲水機|電視|投影|遊戲主機|Switch|PS5|Xbox/i;
 
 export const normalizeSpaces = text => String(text || '').replace(/\s+/g, ' ').trim();
+const monitorPattern = /螢幕|顯示器|Monitor/i;
+const monitorExclusionPattern = /筆電|桌機|電腦|Surface|MacBook|Chromebook|電視|TV|Google TV|智慧顯示器|防窺片|防窺膜|支架|托盤|增高架|落地架|掛架/i;
 
 export const buildJinaUrl = url => `https://r.jina.ai/http://${String(url || '').replace(/^https?:\/\//, '')}`;
 
@@ -70,11 +72,13 @@ export function inferSourceKind(url) {
   }
 }
 
+const monitorSourcePathPattern = /^\/(?:region\/DSAB|store\/DSAB)/i;
 const storageSourcePathPattern = /^\/store\/(DRAC|DRAH|DRAB|DRAA)/i;
 
 export function inferSourceCategoryFromUrl(url) {
   try {
     const parsed = new URL(normalizeUrl(url));
+    if (monitorSourcePathPattern.test(parsed.pathname)) return 'monitor';
     if (storageSourcePathPattern.test(parsed.pathname)) return 'mobile';
   } catch {
     // Ignore malformed URLs and fall back to text classification.
@@ -101,6 +105,7 @@ export function canonicalizeSourceUrl(url) {
 export function detectCategoryFromText(text) {
   const value = String(text || '');
   if (accessoryPattern.test(value)) return 'accessory';
+  if (monitorPattern.test(value) && !monitorExclusionPattern.test(value)) return 'monitor';
   if (storagePattern.test(value) && !computerContextPattern.test(value)) return 'mobile';
   if (computerPattern.test(value)) return 'computer';
   if (otherPattern.test(value)) return 'other';
@@ -109,7 +114,7 @@ export function detectCategoryFromText(text) {
 
 export function isThreeCRelatedTitle(title) {
   const value = String(title || '');
-  return value && (accessoryPattern.test(value) || (storagePattern.test(value) && !computerContextPattern.test(value)) || computerPattern.test(value) || otherPattern.test(value));
+  return value && (accessoryPattern.test(value) || (monitorPattern.test(value) && !monitorExclusionPattern.test(value)) || (storagePattern.test(value) && !computerContextPattern.test(value)) || computerPattern.test(value) || otherPattern.test(value));
 }
 
 export function defaultLimitForSource(source) {
@@ -117,6 +122,7 @@ export function defaultLimitForSource(source) {
   const kind = source?.kind || inferSourceKind(source?.url || '');
   if (kind === 'search') return 8;
   if (category === 'mobile') return 6;
+  if (category === 'monitor') return kind === 'store' ? 12 : 6;
   if (category === 'accessory') return 8;
   if (category === 'computer') return kind === 'store' ? 6 : 6;
   return 6;

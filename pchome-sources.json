@@ -132,7 +132,7 @@
     "kind": "region",
     "url": "https://24h.pchome.com.tw/region/DSAB",
     "label": "顯示器",
-    "category": "computer",
+    "category": "monitor",
     "limit": 6
   },
   {
@@ -140,7 +140,7 @@
     "kind": "store",
     "url": "https://24h.pchome.com.tw/store/DSABRB",
     "label": "LG 全系列",
-    "category": "computer",
+    "category": "monitor",
     "limit": 12
   },
   {
@@ -148,7 +148,7 @@
     "kind": "store",
     "url": "https://24h.pchome.com.tw/store/DSAB03",
     "label": "ASUS 全系列",
-    "category": "computer",
+    "category": "monitor",
     "limit": 12
   },
   {
@@ -156,7 +156,7 @@
     "kind": "store",
     "url": "https://24h.pchome.com.tw/store/DSABEL",
     "label": "Acer 全系列",
-    "category": "computer",
+    "category": "monitor",
     "limit": 12
   },
   {
@@ -164,7 +164,7 @@
     "kind": "store",
     "url": "https://24h.pchome.com.tw/store/DSABCU",
     "label": "MSI 全系列",
-    "category": "computer",
+    "category": "monitor",
     "limit": 12
   },
   {
@@ -172,7 +172,7 @@
     "kind": "store",
     "url": "https://24h.pchome.com.tw/store/DSABEW",
     "label": "ViewSonic 全系列",
-    "category": "computer",
+    "category": "monitor",
     "limit": 12
   },
   {
@@ -180,7 +180,7 @@
     "kind": "store",
     "url": "https://24h.pchome.com.tw/store/DSABF1",
     "label": "BenQ 全系列",
-    "category": "computer",
+    "category": "monitor",
     "limit": 12
   },
   {
@@ -188,7 +188,7 @@
     "kind": "store",
     "url": "https://24h.pchome.com.tw/store/DSABOJ",
     "label": "Dell 全系列",
-    "category": "computer",
+    "category": "monitor",
     "limit": 12
   },
   {
@@ -196,7 +196,7 @@
     "kind": "store",
     "url": "https://24h.pchome.com.tw/store/DSABON",
     "label": "Samsung 全系列",
-    "category": "computer",
+    "category": "monitor",
     "limit": 12
   },
   {
@@ -204,7 +204,7 @@
     "kind": "store",
     "url": "https://24h.pchome.com.tw/store/DSABHU",
     "label": "技嘉 全系列",
-    "category": "computer",
+    "category": "monitor",
     "limit": 12
   },
   {
@@ -212,7 +212,7 @@
     "kind": "store",
     "url": "https://24h.pchome.com.tw/store/DSABQI",
     "label": "PHILIPS 全系列",
-    "category": "computer",
+    "category": "monitor",
     "limit": 12
   },
   {
@@ -220,7 +220,7 @@
     "kind": "store",
     "url": "https://24h.pchome.com.tw/store/DSABQR",
     "label": "AOC 全系列",
-    "category": "computer",
+    "category": "monitor",
     "limit": 12
   },
   {
