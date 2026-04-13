@@ -422,5 +422,117 @@
     "label": "AOC AG493UCX2曲面電競螢幕",
     "category": "computer",
     "limit": 8
+  },
+  {
+    "key": "memory-biwin",
+    "kind": "store",
+    "url": "https://24h.pchome.com.tw/store/DRACG8",
+    "label": "記憶體｜Biwin 佰維",
+    "category": "mobile",
+    "limit": 12
+  },
+  {
+    "key": "memory-transcend",
+    "kind": "store",
+    "url": "https://24h.pchome.com.tw/store/DRACDR",
+    "label": "記憶體｜Transcend 創見",
+    "category": "mobile",
+    "limit": 12
+  },
+  {
+    "key": "memory-adata",
+    "kind": "store",
+    "url": "https://24h.pchome.com.tw/store/DRAC4S",
+    "label": "記憶體｜ADATA 威剛",
+    "category": "mobile",
+    "limit": 12
+  },
+  {
+    "key": "memory-crucial",
+    "kind": "store",
+    "url": "https://24h.pchome.com.tw/store/DRAC00",
+    "label": "記憶體｜Crucial 美光",
+    "category": "mobile",
+    "limit": 12
+  },
+  {
+    "key": "memory-kingston",
+    "kind": "store",
+    "url": "https://24h.pchome.com.tw/store/DRAC03",
+    "label": "記憶體｜Kingston 金士頓",
+    "category": "mobile",
+    "limit": 12
+  },
+  {
+    "key": "memory-kingston-fury",
+    "kind": "store",
+    "url": "https://24h.pchome.com.tw/store/DRACB8",
+    "label": "記憶體｜Kingston FURY 金士頓",
+    "category": "mobile",
+    "limit": 12
+  },
+  {
+    "key": "memory-sp",
+    "kind": "store",
+    "url": "https://24h.pchome.com.tw/store/DRACDC",
+    "label": "記憶體｜SP 廣穎",
+    "category": "mobile",
+    "limit": 12
+  },
+  {
+    "key": "memory-team",
+    "kind": "store",
+    "url": "https://24h.pchome.com.tw/store/DRAC0H",
+    "label": "記憶體｜TEAM 十銓",
+    "category": "mobile",
+    "limit": 12
+  },
+  {
+    "key": "ssd-samsung",
+    "kind": "store",
+    "url": "https://24h.pchome.com.tw/store/DRAH31",
+    "label": "SSD｜Samsung 三星",
+    "category": "mobile",
+    "limit": 12
+  },
+  {
+    "key": "ssd-transcend",
+    "kind": "store",
+    "url": "https://24h.pchome.com.tw/store/DRAHKH",
+    "label": "SSD｜Transcend 創見",
+    "category": "mobile",
+    "limit": 12
+  },
+  {
+    "key": "ssd-wd",
+    "kind": "store",
+    "url": "https://24h.pchome.com.tw/store/DRAH7O",
+    "label": "SSD｜WD 威騰",
+    "category": "mobile",
+    "limit": 12
+  },
+  {
+    "key": "hdd-seagate",
+    "kind": "store",
+    "url": "https://24h.pchome.com.tw/store/DRAB3U",
+    "label": "內接硬碟｜Seagate 希捷",
+    "category": "mobile",
+    "limit": 12
+  },
+  {
+    "key": "hdd-toshiba",
+    "kind": "store",
+    "url": "https://24h.pchome.com.tw/store/DRAB3W",
+    "label": "內接硬碟｜Toshiba 東芝",
+    "category": "mobile",
+    "limit": 12
+  },
+  {
+    "key": "hdd-wd",
+    "kind": "store",
+    "url": "https://24h.pchome.com.tw/store/DRAB3S",
+    "label": "內接硬碟｜WD 威騰",
+    "category": "mobile",
+    "limit": 12
   }
 ]

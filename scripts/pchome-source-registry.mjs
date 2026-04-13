@@ -71,6 +71,18 @@ export function inferSourceKind(url) {
   }
 }
 
+const storageSourcePathPattern = /^\/store\/(DRAC|DRAH|DRAB|DRAA)/i;
+
+export function inferSourceCategoryFromUrl(url) {
+  try {
+    const parsed = new URL(normalizeUrl(url));
+    if (storageSourcePathPattern.test(parsed.pathname)) return 'mobile';
+  } catch {
+    // Ignore malformed URLs and fall back to text classification.
+  }
+  return '';
+}
+
 export function canonicalizeSourceUrl(url) {
   const normalized = normalizeUrl(url);
   if (!normalized) return '';
@@ -192,7 +204,7 @@ export function normalizeSourceEntry(source) {
   if (!url) return null;
   const kind = source.kind || inferSourceKind(url);
   const label = normalizeSpaces(source.label || source.title || '');
-  const category = source.category || detectCategoryFromText(`${label} ${url}`);
+  const category = source.category || inferSourceCategoryFromUrl(url) || detectCategoryFromText(`${label} ${url}`);
   const limit = Number.isFinite(Number(source.limit)) ? Number(source.limit) : defaultLimitForSource({ kind, category, url });
   const key = normalizeSpaces(source.key || buildSourceKey(url, label));
   const normalized = {
@@ -300,7 +312,7 @@ export async function classifySourceUrl(inputUrl, { fetchText } = {}) {
       normalizedInput
     ]);
     const label = extractDisplayLabelFromMarkdown(markdown) || normalizeSpaces(new URL(normalizedInput).pathname.split('/').pop() || normalizedInput);
-    const category = detectCategoryFromText(`${label} ${normalizedInput}`);
+    const category = inferSourceCategoryFromUrl(normalizedInput) || detectCategoryFromText(`${label} ${normalizedInput}`);
     const url = canonicalizeSourceUrl(normalizedInput);
     return normalizeSourceEntry({
       kind,
