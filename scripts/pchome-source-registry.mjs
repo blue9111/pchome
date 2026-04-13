@@ -7,7 +7,8 @@ export const SOURCE_REGISTRY_PATH = path.join(ROOT, 'pchome-sources.json');
 
 const accessoryPattern = /延長線|排插|插座|轉接頭|轉接器|USB\s*Hub|集線器|傳輸線|充電線|線材|保護殼|保護貼|滑鼠墊|支架|收納盒|手機架|車架|車充/i;
 const wearablePattern = /Apple Watch|Watch Ultra|Watch SE|Galaxy Watch|Garmin|Fitbit|Amazfit|華米|HUAWEI WATCH|小米手錶|智慧手錶|智能手錶|智慧.*手環|健康.*手環|運動.*手環|手錶|穿戴裝置|Wearable/i;
-const mobilePattern = /手機|iPhone|iPad|平板|AirPods|耳機|耳麥|耳塞|行動電源|充電|Pubook|電子書|閱讀器|電子紙|Xiaomi|小米|Samsung|三星|Galaxy|OPPO|vivo|Zenfone|Xperia|Redmi|Pixel|Nothing Phone|ROG Phone|藍牙/i;
+const storagePattern = /記憶體|RAM|DRAM|DDR[345]|SSD|固態硬碟|行動固態硬碟|外接硬碟|內接硬碟|硬碟|HDD|NVMe|M\.2|U\.2/i;
+const computerContextPattern = /筆電|桌機|電腦|螢幕|顯示器|電競|Surface|MacBook|Chromebook/i;
 const computerPattern = /筆電|桌機|顯示器|螢幕|SSD|固態硬碟|行動固態硬碟|NVMe|M\.2|硬碟|記憶體|顯卡|GPU|RTX|主機|NAS|路由器|鍵盤|滑鼠|喇叭/i;
 const otherPattern = /相機|鏡頭|攝影|CarPlay|播放器|掃拖機器人|洗地機|機器人|咖啡機|電風扇|RO濾淨|飲水機|電視|投影|遊戲主機|Switch|PS5|Xbox/i;
 
@@ -90,7 +91,7 @@ export function detectCategoryFromText(text) {
   const value = String(text || '');
   if (accessoryPattern.test(value)) return 'accessory';
   if (wearablePattern.test(value)) return 'wearable';
-  if (mobilePattern.test(value)) return 'mobile';
+  if (storagePattern.test(value) && !computerContextPattern.test(value)) return 'mobile';
   if (computerPattern.test(value)) return 'computer';
   if (otherPattern.test(value)) return 'other';
   return 'other';
@@ -98,14 +99,14 @@ export function detectCategoryFromText(text) {
 
 export function isThreeCRelatedTitle(title) {
   const value = String(title || '');
-  return value && (accessoryPattern.test(value) || wearablePattern.test(value) || mobilePattern.test(value) || computerPattern.test(value) || otherPattern.test(value));
+  return value && (accessoryPattern.test(value) || wearablePattern.test(value) || (storagePattern.test(value) && !computerContextPattern.test(value)) || computerPattern.test(value) || otherPattern.test(value));
 }
 
 export function defaultLimitForSource(source) {
   const category = source?.category || 'other';
   const kind = source?.kind || inferSourceKind(source?.url || '');
   if (kind === 'search') return 8;
-  if (category === 'mobile') return 8;
+  if (category === 'mobile') return 6;
   if (category === 'wearable') return 6;
   if (category === 'accessory') return 8;
   if (category === 'computer') return kind === 'store' ? 6 : 6;

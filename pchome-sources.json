@@ -12,7 +12,7 @@
     "kind": "region",
     "url": "https://24h.pchome.com.tw/region/DGAS",
     "label": "一般手機",
-    "category": "mobile",
+    "category": "other",
     "limit": 8
   },
   {
@@ -28,7 +28,7 @@
     "kind": "region",
     "url": "https://24h.pchome.com.tw/region/DYAO",
     "label": "行動電源",
-    "category": "mobile",
+    "category": "other",
     "limit": 8
   },
   {
@@ -180,7 +180,7 @@
     "kind": "region",
     "url": "https://24h.pchome.com.tw/region/DRAH",
     "label": "SSD",
-    "category": "computer",
+    "category": "mobile",
     "limit": 6
   },
   {
@@ -188,7 +188,7 @@
     "kind": "search",
     "url": "https://24h.pchome.com.tw/search/?q=SNV3S%2F1000G",
     "label": "Kingston NV3 1TB",
-    "category": "computer",
+    "category": "mobile",
     "limit": 8
   },
   {
@@ -196,7 +196,7 @@
     "kind": "store",
     "url": "https://24h.pchome.com.tw/store/DRAH6Y",
     "label": "Kingston SSD",
-    "category": "computer",
+    "category": "mobile",
     "limit": 6
   },
   {
@@ -204,7 +204,7 @@
     "kind": "region",
     "url": "https://24h.pchome.com.tw/region/DRAC",
     "label": "記憶體",
-    "category": "computer",
+    "category": "mobile",
     "limit": 6
   },
   {
@@ -212,7 +212,7 @@
     "kind": "region",
     "url": "https://24h.pchome.com.tw/region/DRAA",
     "label": "行動固態硬碟",
-    "category": "computer",
+    "category": "mobile",
     "limit": 6
   },
   {
@@ -228,7 +228,7 @@
     "kind": "region",
     "url": "https://24h.pchome.com.tw/region/DRAB",
     "label": "內接硬碟",
-    "category": "computer",
+    "category": "mobile",
     "limit": 6
   },
   {
