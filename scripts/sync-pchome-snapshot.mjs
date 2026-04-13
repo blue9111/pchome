@@ -66,6 +66,8 @@ function parsePchomeCards(markdown, source) {
     const price = parseMoneyText(titleMatch[2]);
     const originalPrice = parseMoneyText(titleMatch[3]) || price;
     if (!title || !price || !image) continue;
+    const discount = originalPrice > price ? Math.round((1 - price / originalPrice) * 1000) / 10 : 0;
+    if (discount <= 0) continue;
 
     const leadText = normalizeSpaces(body.slice(0, body.indexOf('###')).replace(/^[\s*•]+|[\s*•]+$/g, ''));
     seen.add(id);
@@ -80,7 +82,7 @@ function parsePchomeCards(markdown, source) {
       category: source.category || detectCategoryFromText(title),
       query: source.label || source.title || 'PChome 3C 分類',
       promo: leadText,
-      discount: originalPrice > price ? Math.round((1 - price / originalPrice) * 1000) / 10 : 0
+      discount
     });
 
     if (items.length >= (source.limit || 4)) break;
@@ -108,6 +110,7 @@ function mergeAndSortSnapshot(sourceBuckets) {
   const seen = new Set();
   for (const bucket of sourceBuckets) {
     for (const item of bucket || []) {
+      if (!item || item.discount <= 0) continue;
       const key = item.id || item.url || item.title;
       if (!key || seen.has(key)) continue;
       seen.add(key);
