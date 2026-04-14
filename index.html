@@ -205,7 +205,7 @@
     };
     let currentDeviceMode = syncDeviceMode();
     const state = { products: [], filter: 'all', filterTouched: false, query: '', sort: 'discount-desc', source: 'live', syncStatus: 'loading', sourceLabel: 'PChome 3C 分類即時抓取中', lastSyncAt: null, loadRunId: 0, page: 1 };
-    const autoRefreshMs = 10 * 60 * 1000;
+    const autoRefreshMs = 60 * 60 * 1000;
     let autoRefreshTimer = null;
     const money = v => new Intl.NumberFormat('zh-TW').format(v);
     const ratingBadgeClass = rating => rating === 'strong' ? 'badge-green' : rating === 'consider' ? 'badge-amber' : 'badge-red';
