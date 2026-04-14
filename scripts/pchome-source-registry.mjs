@@ -17,6 +17,8 @@ const monitorExclusionPattern = /筆電|桌機|電腦|Surface|MacBook|Chromebook
 
 export const buildJinaUrl = url => `https://r.jina.ai/http://${String(url || '').replace(/^https?:\/\//, '')}`;
 
+export const buildCodetabsUrl = url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`;
+
 export const buildAllOriginsUrl = url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}&_=${Date.now()}`;
 
 export function hashString(text) {
@@ -265,7 +267,8 @@ export async function fetchTextWithTimeout(url, timeoutMs = 15000, headers = {})
       }
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return await response.text();
+    const buffer = await response.arrayBuffer();
+    return new TextDecoder('utf-8').decode(buffer);
   } finally {
     clearTimeout(timer);
   }
@@ -311,6 +314,7 @@ export async function classifySourceUrl(inputUrl, { fetchText } = {}) {
   if (kind === 'region' || kind === 'category' || kind === 'store') {
     const markdown = await fetchFirstText(fetchText, [
       buildJinaUrl(normalizedInput),
+      buildCodetabsUrl(buildJinaUrl(normalizedInput)),
       buildAllOriginsUrl(buildJinaUrl(normalizedInput)),
       normalizedInput
     ]);
@@ -329,6 +333,7 @@ export async function classifySourceUrl(inputUrl, { fetchText } = {}) {
   if (kind === 'product') {
     const markdown = await fetchFirstText(fetchText, [
       buildJinaUrl(normalizedInput),
+      buildCodetabsUrl(buildJinaUrl(normalizedInput)),
       buildAllOriginsUrl(buildJinaUrl(normalizedInput)),
       normalizedInput
     ]);

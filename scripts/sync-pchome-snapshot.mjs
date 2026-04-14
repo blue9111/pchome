@@ -2,6 +2,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
+  buildCodetabsUrl,
   buildAllOriginsUrl,
   buildJinaUrl,
   detectCategoryFromText,
@@ -84,7 +85,12 @@ async function resolveProductImage(url) {
 
   const promise = (async () => {
     const directUrl = normalized.replace(/^http:\/\//i, 'https://');
-    const candidates = [directUrl, buildJinaUrl(directUrl), buildAllOriginsUrl(buildJinaUrl(directUrl))];
+    const candidates = [
+      directUrl,
+      buildJinaUrl(directUrl),
+      buildCodetabsUrl(buildJinaUrl(directUrl)),
+      buildAllOriginsUrl(buildJinaUrl(directUrl))
+    ];
     for (const candidate of candidates) {
       try {
         const text = await fetchTextWithTimeout(candidate, 20000);
@@ -182,14 +188,23 @@ function parsePchomeCards(markdown, source) {
 }
 
 async function fetchLiveSource(source) {
-  const candidates = [buildJinaUrl(source.url), buildAllOriginsUrl(buildJinaUrl(source.url))];
+  const candidates = [
+    buildJinaUrl(source.url),
+    buildCodetabsUrl(buildJinaUrl(source.url)),
+    buildAllOriginsUrl(buildJinaUrl(source.url))
+  ];
   for (const candidate of candidates) {
     try {
       const responseText = await fetchTextWithTimeout(candidate, 20000);
       const parsed = parsePchomeCards(responseText, source);
       if (parsed.length) return await repairPlaceholderImages(parsed);
     } catch (error) {
-      console.warn(`[warn] ${source.key} via ${candidate.includes('allorigins') ? 'allorigins' : 'jina'} failed: ${error.message}`);
+      const proxyName = candidate.includes('codetabs')
+        ? 'codetabs'
+        : candidate.includes('allorigins')
+          ? 'allorigins'
+          : 'jina';
+      console.warn(`[warn] ${source.key} via ${proxyName} failed: ${error.message}`);
     }
   }
   return [];
