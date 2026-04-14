@@ -34,6 +34,8 @@ const extractProductId = href => {
 
 const PRODUCT_IMAGE_CACHE = new Map();
 const isPlaceholderImageUrl = url => /mobile_loading\.svg/i.test(String(url || ''));
+const PROMO_DEAL_PATTERN = /(最高折\d+|滿\d+件享\d+折|滿\d+件享|售價已折|折扣)/i;
+const isPromotionalDealText = text => PROMO_DEAL_PATTERN.test(String(text || ''));
 
 function collectImageCandidates(text) {
   const source = String(text || '');
@@ -153,9 +155,9 @@ function parsePchomeCards(markdown, source) {
     const originalPrice = parseMoneyText(titleMatch[3]) || price;
     if (!title || !price || !image) continue;
     const discount = originalPrice > price ? Math.round((1 - price / originalPrice) * 1000) / 10 : 0;
-    if (discount <= 0) continue;
-
     const leadText = normalizeSpaces(body.slice(0, body.indexOf('###')).replace(/^[\s*•]+|[\s*•]+$/g, ''));
+    const promoDeal = isPromotionalDealText([leadText, title, body].join(' '));
+    if (discount <= 0 && !(promoDeal && source.includePromoDeal)) continue;
     seen.add(id);
     items.push({
       id,
@@ -168,7 +170,9 @@ function parsePchomeCards(markdown, source) {
       category: source.category || detectCategoryFromText(title),
       query: source.label || source.title || 'PChome 3C 分類',
       promo: leadText,
-      discount
+      discount,
+      promoDeal,
+      includePromoDeal: Boolean(source.includePromoDeal)
     });
 
     if (items.length >= (source.limit || 4)) break;
@@ -196,7 +200,7 @@ function mergeAndSortSnapshot(sourceBuckets) {
   const indexByKey = new Map();
   for (const bucket of sourceBuckets) {
     for (const item of bucket || []) {
-      if (!item || item.discount <= 0) continue;
+      if (!item || !(item.discount > 0 || (item.promoDeal && item.includePromoDeal))) continue;
       const key = item.id || item.url || item.title;
       if (!key) continue;
       const existingIndex = indexByKey.get(key);
@@ -211,7 +215,7 @@ function mergeAndSortSnapshot(sourceBuckets) {
       }
     }
   }
-  merged.sort((a, b) => b.discount - a.discount || a.title.localeCompare(b.title, 'zh-Hant') || a.price - b.price);
+  merged.sort((a, b) => b.discount - a.discount || Number(Boolean(b.promoDeal)) - Number(Boolean(a.promoDeal)) || a.title.localeCompare(b.title, 'zh-Hant') || a.price - b.price);
   return merged;
 }
 

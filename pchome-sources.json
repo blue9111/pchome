@@ -264,12 +264,29 @@
     "limit": 8
   },
   {
+    "key": "ssd-kingston-nv3-500g",
+    "kind": "search",
+    "url": "https://24h.pchome.com.tw/search/?q=SNV3S%2F500G",
+    "label": "Kingston NV3 500GB",
+    "category": "mobile",
+    "limit": 12,
+    "includePromoDeal": true
+  },
+  {
+    "key": "ssd-kingston-gen4",
+    "kind": "store",
+    "url": "https://24h.pchome.com.tw/store/LTETCU",
+    "label": "Kingston PCIe Gen4 SSD",
+    "category": "mobile",
+    "limit": 12
+  },
+  {
     "key": "ssd-kingston",
     "kind": "store",
     "url": "https://24h.pchome.com.tw/store/DRAH6Y",
     "label": "Kingston SSD",
     "category": "mobile",
-    "limit": 6
+    "limit": 30
   },
   {
     "key": "memory",
